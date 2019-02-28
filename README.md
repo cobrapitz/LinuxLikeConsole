@@ -5,6 +5,7 @@
 
 ![Console](https://i.ibb.co/DG0qmN2/LLC.png)
 
+toggle with: key above tab
 
 
 ## Features:
