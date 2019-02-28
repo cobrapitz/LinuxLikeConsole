@@ -1,0 +1,41 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+_global_script_classes=[ {
+"base": "Reference",
+"class": "Command",
+"language": "GDScript",
+"path": "res://console/command.gd"
+}, {
+"base": "Node",
+"class": "CommandRef",
+"language": "GDScript",
+"path": "res://console/command_ref.gd"
+}, {
+"base": "Control",
+"class": "Console",
+"language": "GDScript",
+"path": "res://console/console.gd"
+} ]
+_global_script_class_icons={
+"Command": "",
+"CommandRef": "",
+"Console": ""
+}
+
+[application]
+
+config/name="LinuxLikeConsole"
+run/main_scene="res://test.tscn"
+config/icon="res://icon.png"
+
+[rendering]
+
+environment/default_environment="res://default_env.tres"
