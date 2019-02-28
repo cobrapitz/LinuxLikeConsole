@@ -2,3 +2,5 @@
 *.png.import
 test.gd
 test.tscn
+project.godot
+default_env.tres
