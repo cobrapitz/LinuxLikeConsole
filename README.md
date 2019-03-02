@@ -19,12 +19,12 @@ toggle with: key above tab
   * [x] /exit (hides console)
   * [x] /clear (clears text history)
   * [x] /helpAll (shows all commands)
-  * [ ] /setDefaultConsoleTextColor 
 * [x] slide in animation
 * [x] predefined and runtime forwarded parameters (runtime forwarding is prioritized)
 * [ ] easy BBcode support (like: [b]this is fat[/b]
 * [ ] logging 
 * [ ] custom filesystem
+* [ ] custom/built in themes
 
 ### Drawbacks
 * #### parameter access of custom functions with Arrays (see example below)
