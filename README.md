@@ -57,10 +57,14 @@ func _ready():
     var bgColorCommand = Command.new('changeBackgroundColor', bgColorRef, [], 'Changes the color of the background.')
     testConsole.add_command(bgColorCommand)
 
-
+# called with: /test_print hello
+# result: "This is my first message: hello" (in godot console)
 func my_print(input : Array):
     print("This is my first message: %s" % input[0]) 
 	
+# called with: /changeBackgroundColor 0 1 0 1 
+# OR with: /changeBackgroundColor 0 1 0
+# result: changed background color of ColorRect to green -> Color(0, 1, 0, 1)
 func change_background_color(input : Array):
     var bg = get_node(background) as ColorRect
     var c = input # color c
