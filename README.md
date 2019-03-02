@@ -51,7 +51,7 @@ func _ready():
 
 
 func my_print(message : Array):
-	print("This is my first message: %s" % message[0] 
+	print("This is my first message: %s" % message[0]) 
 ```
   
 #### Godots 'tool' keyword
