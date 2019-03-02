@@ -1,6 +1,6 @@
 # LinuxLikeConsole
 ### Linux Like Console written in gdscript for Godot (Game Engine)
-
+###### For additional features just write an issue or write an email 
 
 
 ![Console](https://i.ibb.co/DG0qmN2/LLC.png)
@@ -9,18 +9,22 @@ toggle with: key above tab
 
 
 ## Features:
-* #### auto completion / suggestion
-* #### custom commands
-* #### custom command sign (default: '/')
-* #### dragable console
-* #### built in commands like
-  * /man <command>
-  * /help (shows user defined commands)
-  * /exit (hides console)
-  * /clear (clears text history)
-  * /helpAll (shows all commands)
-* #### slide in animation
-* #### predefined and runtime forwarded parameters (runtime forwarding is prioritized)
+* [x] #### auto completion / suggestion
+* [x] #### custom commands
+* [x] #### custom command sign (default: '/')
+* [x] #### dragable console
+* [x] #### built in commands like
+  * [x] /man <command>
+  * [x] /help (shows user defined commands)
+  * [x] /exit (hides console)
+  * [x] /clear (clears text history)
+  * [x] /helpAll (shows all commands)
+  * [ ] /setDefaultConsoleTextColor 
+* [x] #### slide in animation
+* [x] #### predefined and runtime forwarded parameters (runtime forwarding is prioritized)
+* [ ] easy BBcode support (like: [b]this is fat[/b]
+* [ ] logging 
+* [ ] custom filesystem
 
 ### Drawbacks
 * #### parameter access of custom functions with Arrays (see example below)
