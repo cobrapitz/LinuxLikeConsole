@@ -34,6 +34,9 @@ func set_args(args : Array):
 func set_description(description : String):
 	_description = description
 
+func get_expected_args() -> Array:
+	return _cmdRef.get_expected_arguments()
+
 func get_ref():
 	return _cmdRef
 

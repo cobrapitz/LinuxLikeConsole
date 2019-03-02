@@ -1,8 +1,11 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://console/console.gd" type="Script" id=1]
-[ext_resource path="res://console/console_font.tres" type="DynamicFont" id=2]
-[ext_resource path="res://console/invisBakgroundc.tres" type="Theme" id=3]
+[ext_resource path="res://console/console_font_bold.tres" type="DynamicFont" id=2]
+[ext_resource path="res://console/console_font.tres" type="DynamicFont" id=3]
+[ext_resource path="res://console/invisBakgroundc.tres" type="Theme" id=4]
+[ext_resource path="res://console/console_font_button.tres" type="DynamicFont" id=5]
+[ext_resource path="res://console/console_font_button_label.tres" type="DynamicFont" id=6]
 
 [sub_resource type="Animation" id=1]
 resource_name = "slide_in_console"
@@ -18,12 +21,35 @@ tracks/0/keys = {
 "points": PoolRealArray( -1544.04, -0.25, 0, 0.0678505, 704.387, 19.2874, -0.0531282, 59.7197, 0.0121619, -5.83333, -2.89439, -0.0526411, -8.33912, 0.0249538, 9.83796, 6.98975, -0.0596721, 5.42659, 0.0260388, -2.32568, 0, -0.0582898, -0.554256, 0.25, 0 ),
 "times": PoolRealArray( 0, 0.103056, 0.193121, 0.271237, 0.42 )
 }
+tracks/1/type = "method"
+tracks/1/path = NodePath("..")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0.07 ),
+"transitions": PoolRealArray( 1 ),
+"values": [ {
+"args": [ null ],
+"method": "_on_animation_animation_started"
+} ]
+}
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 1, 1, 1, 0.12549 )
+
+[sub_resource type="StyleBoxFlat" id=2]
+bg_color = Color( 1, 1, 1, 0 )
+
+[sub_resource type="StyleBoxFlat" id=5]
+bg_color = Color( 1, 1, 1, 0 )
 
 [node name="console" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_right = -632.0
-margin_bottom = -348.0
+margin_right = -441.0
+margin_bottom = -283.0
 mouse_filter = 1
 script = ExtResource( 1 )
 
@@ -34,16 +60,11 @@ anchor_bottom = 1.0
 [node name="background" type="ColorRect" parent="offset"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color( 0.415686, 0.415686, 0.415686, 0.0941176 )
+color = Color( 0.0823529, 0.14902, 0.262745, 0.890196 )
 
 [node name="titleBar" type="Control" parent="offset"]
 anchor_right = 1.0
 margin_bottom = 14.0
-
-[node name="background2" type="ColorRect" parent="offset"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-color = Color( 0.0823529, 0.14902, 0.262745, 0.890196 )
 
 [node name="textBackground" type="ColorRect" parent="offset"]
 anchor_right = 1.0
@@ -57,9 +78,10 @@ anchor_bottom = 1.0
 margin_left = 7.0
 margin_top = 17.0
 margin_right = -7.0
-margin_bottom = -19.0
+margin_bottom = -22.0
 mouse_filter = 1
-custom_fonts/normal_font = ExtResource( 2 )
+custom_fonts/bold_font = ExtResource( 2 )
+custom_fonts/normal_font = ExtResource( 3 )
 custom_constants/line_separation = -4
 bbcode_enabled = true
 scroll_following = true
@@ -72,27 +94,67 @@ margin_left = 7.0
 margin_top = -20.4527
 margin_right = -5.0
 margin_bottom = -0.452728
+focus_neighbour_left = NodePath(".")
+focus_neighbour_top = NodePath(".")
+focus_neighbour_right = NodePath(".")
+focus_neighbour_bottom = NodePath(".")
 focus_next = NodePath(".")
 focus_mode = 0
-theme = ExtResource( 3 )
-custom_fonts/font = ExtResource( 2 )
+theme = ExtResource( 4 )
+custom_fonts/font = ExtResource( 3 )
 focus_mode = 0
 placeholder_text = ">"
 
 [node name="send" type="Button" parent="offset"]
+editor/display_folded = true
 visible = false
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = -57.7075
-margin_top = -25.9998
-margin_right = -1.70752
-margin_bottom = -3.99976
+margin_left = -51.0
+margin_top = -17.0
+margin_right = -3.0
+margin_bottom = -2.0
+theme = ExtResource( 4 )
+custom_fonts/font = ExtResource( 5 )
+
+[node name="text" type="Label" parent="offset/send"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -1.0
+custom_fonts/font = ExtResource( 6 )
+custom_colors/font_color = Color( 0.843137, 0.843137, 0.843137, 1 )
 text = "send"
+align = 1
+valign = 1
 
 [node name="animation" type="AnimationPlayer" parent="offset"]
 anims/slide_in_console = SubResource( 1 )
 
+[node name="hideConsole" type="Button" parent="offset"]
+editor/display_folded = true
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -28.0
+margin_bottom = 14.0
+custom_styles/hover = SubResource( 4 )
+custom_styles/pressed = SubResource( 2 )
+custom_styles/normal = SubResource( 5 )
+custom_fonts/font = ExtResource( 5 )
+align = 0
+
+[node name="sign" type="Label" parent="offset/hideConsole"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 6.0
+margin_top = -4.0
+margin_bottom = -2.0
+custom_fonts/font = ExtResource( 6 )
+text = "__"
+valign = 1
+
+[connection signal="gui_input" from="offset/titleBar" to="." method="_on_titleBar_gui_input"]
 [connection signal="meta_clicked" from="offset/richTextLabel" to="." method="_on_richTextLabel_meta_clicked"]
 [connection signal="pressed" from="offset/send" to="." method="_on_send_pressed"]
+[connection signal="button_up" from="offset/hideConsole" to="." method="_on_hideConsole_button_up"]

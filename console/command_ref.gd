@@ -11,7 +11,7 @@ enum COMMAND_REF_TYPE {
 var _ref # this can be a variable or a function
 var _type # what is the ref (func or var)
 var _obj # refers to the owner of the variable/function
-var _argsExpected : int # arguments for the function
+var _argsExpected # arguments for the function
 
 func _init(obj, ref : String, type, argsExpected):
 	_obj = obj
@@ -21,7 +21,10 @@ func _init(obj, ref : String, type, argsExpected):
 	if type == COMMAND_REF_TYPE.VAR:
 		_argsExpected = 1
 	else:
-		_argsExpected = argsExpected
+		if typeof(argsExpected) == TYPE_ARRAY:
+			_argsExpected = argsExpected
+		else:
+			_argsExpected = [argsExpected]
 
 func set_type(type):
 	_type = type
@@ -29,7 +32,7 @@ func set_type(type):
 func get_type():
 	return _type
 
-func get_expected_arguments() -> int:
+func get_expected_arguments() -> Array:
 	return _argsExpected
 
 func apply(args : Array):
@@ -39,7 +42,7 @@ func apply(args : Array):
 			ref.set_function(_ref)
 			ref.set_instance(_obj)
 			if args.size() == 0:
-				ref.call_func()
+				ref.call_func(args)
 			else:
 				ref.call_func(args)
 				
