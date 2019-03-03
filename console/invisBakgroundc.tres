@@ -1,19 +1,30 @@
 [gd_resource type="Theme" load_steps=5 format=2]
 
-[sub_resource type="StyleBoxFlat" id=4]
-bg_color = Color( 0.0470588, 0.0470588, 0.0980392, 1 )
-
-[sub_resource type="StyleBoxFlat" id=1]
-bg_color = Color( 0, 0, 0, 0 )
+[sub_resource type="StyleBoxFlat" id=5]
+bg_color = Color( 0.14, 0.14, 0.18, 0.34 )
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color( 1, 1, 1, 0.125 )
+corner_radius_top_left = 5
+corner_radius_top_right = 2
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 2
 
 [sub_resource type="StyleBoxFlat" id=2]
-bg_color = Color( 0.6, 0.6, 0.6, 0 )
+bg_color = Color( 0, 0, 0, 0 )
 
 [sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 0.6, 0.6, 0.6, 0 )
+
+[sub_resource type="StyleBoxFlat" id=4]
 bg_color = Color( 0, 0, 0, 0 )
 
 [resource]
 BoxContainer/constants/separation = 4
+Button/colors/Button = Color( 0, 0, 0, 1 )
+Button/colors/bg_color = Color( 0, 0, 0, 1 )
 Button/colors/font_color = Color( 0, 0, 0, 1 )
 Button/colors/font_color_disabled = Color( 0, 0, 0, 1 )
 Button/colors/font_color_hover = Color( 0, 0, 0, 1 )
@@ -23,7 +34,7 @@ Button/colors/icon_color_pressed = Color( 0, 0, 0, 1 )
 Button/styles/disabled = null
 Button/styles/focus = null
 Button/styles/hover = null
-Button/styles/normal = SubResource( 4 )
+Button/styles/normal = SubResource( 5 )
 Button/styles/pressed = null
 CheckBox/colors/font_color = Color( 0, 0, 0, 1 )
 CheckBox/colors/font_color_disabled = Color( 0, 0, 0, 1 )
@@ -840,12 +851,12 @@ Label/styles/normal = null
 LineEdit/colors/clear_button_color = Color( 1, 1, 1, 1 )
 LineEdit/colors/clear_button_color_pressed = Color( 1, 1, 1, 1 )
 LineEdit/colors/cursor_color = Color( 1, 1, 1, 1 )
-LineEdit/colors/font_color = Color( 1, 1, 1, 1 )
+LineEdit/colors/font_color = Color( 0, 1, 0, 1 )
 LineEdit/colors/read_only = Color( 1, 1, 1, 1 )
 LineEdit/colors/selection_color = Color( 1, 1, 1, 1 )
-LineEdit/styles/focus = SubResource( 1 )
-LineEdit/styles/normal = SubResource( 2 )
-LineEdit/styles/read_only = SubResource( 3 )
+LineEdit/styles/focus = SubResource( 2 )
+LineEdit/styles/normal = SubResource( 3 )
+LineEdit/styles/read_only = SubResource( 4 )
 LinkButton/colors/font_color = Color( 0, 0, 0, 1 )
 LinkButton/styles/focus = null
 MarginContainer/constants/margin_bottom = 0
