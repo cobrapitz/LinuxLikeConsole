@@ -23,8 +23,8 @@ toggle with: key above tab
 * [x] predefined and runtime forwarded parameters (runtime forwarding is prioritized)
 * [ ] easy BBcode support (like: [b]this is fat[/b]
 * [ ] logging 
-* [ ] custom filesystem
-* [ ] custom/built in themes
+* [x] custom/built in themes 
+* ~~custom filesystem~~
 
 ### Drawbacks
 * #### parameter access of custom functions with Arrays (see example below)
