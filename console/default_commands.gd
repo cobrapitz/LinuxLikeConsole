@@ -95,6 +95,10 @@ func _init(console):
 
 
 func alias(input : Array):
+	if input.size() < 2:
+		_consoleRef.append_message("not enough arguments!")
+		return
+	
 	var cmd = _consoleRef.get_command(input[1])
 	if cmd == null:
 		_consoleRef.append_message(_consoleRef.COMMAND_NOT_FOUND_MSG)
