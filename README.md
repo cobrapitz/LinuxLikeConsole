@@ -77,36 +77,3 @@ func change_background_color(input : Array):
     else: # 4
         bg.set_frame_color(Color(c[0], c[1], c[2], c[3]))
 ```
-
-***
-
-```gdscript
-#short version
-
-const CommandRef = preload("res://console/command_ref.gd")
-const Console = preload("res://console/console.tscn")
-
-onready var testConsole = $console
-
-
-func _ready():
-    var exitRef = CommandRef.new(self, "my_print", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
-    var exitCommand = Command.new('test_print', exitRef, [], 'Custom print.')
-    testConsole.add_command(exitCommand)
-
-    var bgColorRef = CommandRef.new(self, "change_background_color", CommandRef.COMMAND_REF_TYPE.FUNC, [3,4])
-    var bgColorCommand = Command.new('changeBackgroundColor', bgColorRef, [], 'Changes the color of the background.')
-    testConsole.add_command(bgColorCommand)
-    
-func my_print(input : Array):
-    print("This is my first message: %s" % input[0]) 
-	
-func change_background_color(input : Array):
-    var bg = get_node(background) as ColorRect
-    var c = input # color c
-    if c.size() == 3: 
-        bg.set_frame_color(Color(c[0], c[1], c[2], 1))
-    else: # 4
-        bg.set_frame_color(Color(c[0], c[1], c[2], c[3]))
-
-```
