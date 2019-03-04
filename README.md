@@ -28,7 +28,7 @@
 * [x] (simple) logging 
 * [x] custom/built in themes (arch theme, ubuntu theme, windows, light, dark)
 
-[functions](https://i.imgur.com/7740jiH.png)
+![functions](https://i.imgur.com/7740jiH.png)
 
 ### Drawbacks
 * #### parameter access of custom functions with Arrays (see example below)
