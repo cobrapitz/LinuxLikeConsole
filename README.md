@@ -21,7 +21,7 @@ toggle with: key above tab
   * [x] /helpAll (shows all commands)
 * [x] slide in animation
 * [x] predefined and runtime forwarded parameters (runtime forwarding is prioritized)
-* [ ] easy BBcode support (like: [b]this is fat[/b]
+* [x] easy BBcode support (like: [b]this is fat[/b]
 * [ ] logging 
 * [x] custom/built in themes 
 * ~~custom filesystem~~
