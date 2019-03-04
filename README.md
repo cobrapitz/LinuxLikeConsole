@@ -35,7 +35,7 @@ toggle with: key above tab
 
 ### How to create custom commands
 
-##### ![Short Version](https://github.com/cobrapitz/LinuxLikeConsole/wiki/Examples#1-how-to-add-custom-command-1)
+##### [Short Version](https://github.com/cobrapitz/LinuxLikeConsole/wiki/Examples#1-how-to-add-custom-command-1)
 ```gdscript
 const CommandRef = preload("res://console/command_ref.gd")
 const Console = preload("res://console/console.tscn")
