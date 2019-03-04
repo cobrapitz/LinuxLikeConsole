@@ -769,14 +769,24 @@ func _print_args(commandIndex : int):
 	var i = commandIndex
 	if commands[i].get_expected_args().size() > 1:
 		for arg in range(commands[i].get_expected_args().size()):
-			append_message_no_event("%s" % commands[i].get_expected_args()[arg])
+			if (commands[i].get_expected_args()[arg] == VARIADIC_COMMANDS):
+				append_message_no_event("variadic")
+			else:
+				append_message_no_event(str(commands[i].get_expected_args()[arg]))
 			if arg == commands[i].get_expected_args().size() - 2:
-				append_message_no_event(" or " + str(commands[i].get_expected_args()[arg+1]))
+				append_message_no_event(" or ")
+				if (commands[i].get_expected_args()[arg+1] == VARIADIC_COMMANDS):
+					append_message_no_event("variadic")
+				else:
+					append_message_no_event(str(commands[i].get_expected_args()[arg+1]))
 				break
 			else:
 				append_message_no_event(", ")
 	
 	elif commands[i].get_expected_args().size() == 1: 
-		append_message_no_event("1")
+		if commands[i].get_expected_args()[0] == VARIADIC_COMMANDS:
+			append_message_no_event("variadic")
+		else:
+			append_message_no_event("1")
 	else:
 		append_message_no_event("0")
