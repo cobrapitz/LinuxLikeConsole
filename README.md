@@ -13,7 +13,6 @@ toggle with: key above tab
 ## Features:
 * [x] auto completion / suggestion
 * [x] custom commands
-* [x] custom command sign (default: '/')
 * [x] dragable console
 * [x] built in commands like
   * [x] /man [command]
@@ -26,8 +25,7 @@ toggle with: key above tab
 * [x] predefined and runtime forwarded parameters (runtime forwarding is prioritized)
 * [x] easy BBcode support (like: [b]this is bold[/b])
 * [x] (simple) logging 
-* [x] custom/built in themes 
-* ~~custom filesystem~~
+* [x] custom/built in themes (arch theme, ubuntu theme, windows, light, dark)
 
 ### Drawbacks
 * #### parameter access of custom functions with Arrays (see example below)
