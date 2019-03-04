@@ -76,8 +76,11 @@ func change_background_color(input : Array):
         bg.set_frame_color(Color(c[0], c[1], c[2], 1))
     else: # 4
         bg.set_frame_color(Color(c[0], c[1], c[2], c[3]))
-	
-#--------------------------------------------------------------------------------------
+```
+
+***
+
+```
 #short version
 
 const CommandRef = preload("res://console/command_ref.gd")
