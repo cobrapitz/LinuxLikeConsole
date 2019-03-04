@@ -8,6 +8,8 @@
 toggle with: key above tab
 
 
+## ![Wiki](https://github.com/cobrapitz/LinuxLikeConsole/wiki)
+
 ## Features:
 * [x] auto completion / suggestion
 * [x] custom commands
@@ -19,6 +21,7 @@ toggle with: key above tab
   * [x] /exit (hides console)
   * [x] /clear (clears text history)
   * [x] /helpAll (shows all commands)
+  * [x] /alias <newName> <command> <args...>
 * [x] slide in animation
 * [x] predefined and runtime forwarded parameters (runtime forwarding is prioritized)
 * [x] easy BBcode support (like: [b]this is bold[/b])
