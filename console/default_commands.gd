@@ -4,7 +4,10 @@ class_name DefaultCommands
 
 var _firstHelp := true
 
-var _consoleRef
+#const Console = preload("res://console/console.gd") #!cyclic
+
+var _consoleRef #: Console
+
 
 func _init(console):
 	_consoleRef = console
@@ -60,19 +63,59 @@ func _init(console):
 	var toggleWindowDragCommand = Command.new('toggleWindowDrag', toggleWindowDragRef, [], 'Toggles whether the console is draggable or not.')
 	console.add_command(toggleWindowDragCommand)
 	
+	var setThemeRef = CommandRef.new(self, "set_theme", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
+	var setThemeCommand = Command.new('setTheme', setThemeRef, [], 'Sets the theme.')
+	console.add_command(setThemeCommand)
 	
+	var setDockRef = CommandRef.new(self, "set_dock", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
+	var setDockCommand = Command.new('setDock', setDockRef, [], 'Sets the docking station.')
+	console.add_command(setDockCommand)
+	
+	var setTextColorRef = CommandRef.new(self, "set_default_text_color", CommandRef.COMMAND_REF_TYPE.FUNC, [1,3,4])
+	var setTextColorCommand = Command.new('setDefaultTextColor', setTextColorRef, [], 'Sets the default text color.')
+	console.add_command(setTextColorCommand)
+
+	
+#	var sendRef = CommandRef.new(self, "send", CommandRef.COMMAND_REF_TYPE.FUNC, _consoleRef.VARIADIC_COMMANDS)
+#	var sendCommand = Command.new('send', sendRef, [], 'send.')
+#	console.add_command(sendCommand)
 
 
 # default commands
 
+#func send(input : Array):
+#	var output := ""
+#	for i in range(input.size()):
+#		output += input[i]
+#
+#	_consoleRef.append_message(output)
+
+func set_default_text_color(input : Array):
+	if input.size() == 1:
+		_consoleRef.update_text_color(input[0])
+	elif input.size() == 3:
+		_consoleRef.set_default_text_color(Color(input[0], input[1], input[2])) 
+	elif input.size() == 4:
+		_consoleRef.set_default_text_color(Color(input[0], input[1], input[2], input[3])) 
+	 
+
+func set_dock(input : Array):
+	_consoleRef.update_docking(input[0])
+	
+	
+func set_theme(input : Array):
+	_consoleRef.update_theme(input[0])
+	
 
 func help_all(_input : Array):
+	_consoleRef.new_line()
 	for i in range(_consoleRef.commands.size()):
-		_consoleRef.send_message_without_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], true, false)
-		_consoleRef.send_message_without_event(": %s" % _consoleRef.commands[i].get_description(), false, false)
-		_consoleRef.send_message_without_event(" (args: ", false, false)
+		_consoleRef.append_message_no_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], true)
+		_consoleRef.append_message_no_event(": %s" % _consoleRef.commands[i].get_description())
+		_consoleRef.append_message_no_event(" (args: ")
 		_consoleRef._print_args(i)
-		_consoleRef.send_message_without_event(")") # new line
+		_consoleRef.append_message_no_event(")")
+		_consoleRef.new_line()
 
 
 func set_command_sign(input : Array):
@@ -151,26 +194,34 @@ func exit(_input : Array):
 	
 func man(input : Array):
 	var command = input[0]
+	
+	_consoleRef.new_line()
 	for i in range(_consoleRef.commands.size()):
 		if _consoleRef.commands[i].get_name() == command:
-			_consoleRef.send_message_without_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], true, false)
-			_consoleRef.send_message_without_event(": %s" % _consoleRef.commands[i].get_description(), false, false)
-			_consoleRef.send_message_without_event(" (args: ", false, false)
+			_consoleRef.append_message_no_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], true)
+			_consoleRef.append_message_no_event(": %s" % _consoleRef.commands[i].get_description())
+			_consoleRef.append_message_no_event(" (args: ")
 			_consoleRef._print_args(i)
-			_consoleRef.send_message_without_event(")", false, false)
+			_consoleRef.append_message_no_event(")")
+			_consoleRef.new_line()
 			return
-	_consoleRef.send_message_without_event("Couldn't find command '%s'" % command)
+	
+	_consoleRef.append_message_no_event("[color=red]Couldn't find command '%s'[/color]" % command)
 		
 	
 func help(_input : Array):
 	if _firstHelp:
 		_firstHelp = false
-		_consoleRef.send_message_without_event("'help' shows user added commands. Use 'helpAll' to show all commands")
+		_consoleRef.append_message_no_event("'help' shows user added commands. Use 'helpAll' to show all commands")
+		_consoleRef.new_line()
 	
+	_consoleRef.new_line()
 	for ti in range(_consoleRef.commands.size() - _consoleRef.basicCommandsSize):
 		var i = ti + _consoleRef.basicCommandsSize
-		_consoleRef.send_message_without_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], true, false)
-		_consoleRef.send_message_without_event(": %s" % _consoleRef.commands[i].get_description(), false, false)
-		_consoleRef.send_message_without_event(" (args: ", false, false)
+		_consoleRef.append_message_no_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], true)
+		_consoleRef.append_message_no_event(": %s" % _consoleRef.commands[i].get_description())
+		_consoleRef.append_message_no_event(" (args: ")
 		_consoleRef._print_args(i)
-		_consoleRef.send_message_without_event(")") # new line
+		_consoleRef.append_message_no_event(")")
+		_consoleRef.new_line()
+		

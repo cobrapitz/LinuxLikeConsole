@@ -16,17 +16,34 @@ const CommandRef = preload("res://console/command_ref.gd")
 
 const DefaultCommands = preload("res://console/default_commands.gd")
 
+enum BBCode {
+	BOLD = 1,
+	ITALICS = 2,
+	UNDERLINE = 4,
+	CODE = 8,
+	CENTER = 16,
+	RIGHT = 32,
+	FILL = 64,
+	INDENT = 128,
+	URL = 256
+}
+
+var _flags : String 
+var _antiFlags : String # flagendings 
+
+const COMMAND_NOT_FOUND_MSG := "[color=red]Command not found![/color]"
+
+
 #var logFile = preload("res://Log.gd").new()
 
 onready var lineEdit = $offset/lineEdit
 onready var textLabel = $offset/richTextLabel
 onready var animation = $offset/animation
 
-#var allText = ""
-var messageHistory := ""
+var allText = ""
+#var messageHistory := ""
 var messages := []
-var currentIndex := -1
-var resetSwitch := true
+var currentIndex := 0
 
 var startWindowDragPos : Vector2
 var dragging : bool
@@ -35,10 +52,12 @@ var mdefaultSize := Vector2(800.0, 425.0)
 var commands := []
 var basicCommandsSize := 0
 
+const VARIADIC_COMMANDS = 65535 # amount of parameters
+
 
 var isShown := true
 
-const toggleConsole = KEY_QUOTELEFT
+const toggleConsole := KEY_QUOTELEFT
 
 # export vars
 
@@ -143,9 +162,7 @@ func update_text_color(selected):
 			_:
 				print("no such font " + str(selected))
 				return
-		$offset/richTextLabel.set("custom_colors/default_color", textColor)
-		$offset/lineEdit.set("custom_colors/font_color", textColor)
-		
+		set_default_text_color(textColor)
 				
 				
 func update_theme(selected):
@@ -187,7 +204,7 @@ func _update_theme_related_elements():
 	update_background_color(backgroundColor)
 	update_line_edit_color(lineEditColor)
 	update_button_color(buttonColor)
-	property_list_changed_notify()
+	property_list_changed_notify() # to see the changes in the editor
 	
 			
 func update_tile_bar_color(color):
@@ -257,14 +274,14 @@ func _init():
 	
 	
 func add_basic_commands():
-	var defaultCommands = DefaultCommands.new(self) 
+	DefaultCommands.new(self) 
 
 
 func _input(event):
 	if event is InputEventKey and event.scancode == toggleConsole and event.is_pressed() and not event.is_echo():
 		toggle_console()
 		
-	
+		
 	# left or right mouse button pressed
 	# test if really needed
 	if event is InputEventMouseButton:
@@ -275,28 +292,32 @@ func _input(event):
 			else:
 				lineEdit.focus_mode = FOCUS_CLICK
 	
-	if Input.is_key_pressed(KEY_ENTER):
-		if not lineEdit.text.empty():
-			var tmp = lineEdit.text
-			send_message_without_event("\n" + userMessageSign + " ", false, false)
-			send_message(tmp)
-		
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.scancode == KEY_ENTER:
+			if not lineEdit.text.empty():
+				send_line()
+		if event.scancode == KEY_ESCAPE:
+			lineEdit.text = ""
+
 			
-	elif event.is_action_pressed(previous_message_history):
-		if resetSwitch:
-			messages.append(lineEdit.text)
-			resetSwitch = false
+		
+	if event.is_action_pressed(previous_message_history):
+		if messages.empty():
+			return
 		currentIndex -= 1
 		if currentIndex < 0:
 			currentIndex = messages.size() - 1
+		elif currentIndex > messages.size() - 1:
+			currentIndex = 0
 		lineEdit.text = messages[currentIndex]
 		
 	elif event.is_action_pressed(next_message_history):
-		if resetSwitch:
-			messages.append(lineEdit.text)
-			resetSwitch = false
+		if messages.empty():
+			return
 		currentIndex += 1
-		if currentIndex > messages.size() - 1:
+		if currentIndex < 0:
+			currentIndex = 0
+		elif currentIndex > messages.size() - 1:
 			currentIndex = 0
 		lineEdit.text = messages[currentIndex]
 		
@@ -308,9 +329,11 @@ func _input(event):
 				lineEdit.set_cursor_position(lineEdit.text.length())
 			elif closests.size() > 1:
 				var tempLine = lineEdit.text
-				send_message_without_event("possible commands: ")
+				new_line()
+				append_message_no_event("possible commands: ")
 				for c in closests:
-					send_message_without_event(commandSign + c, true)
+					new_line()
+					append_message_no_event(commandSign + c, true)
 					messages.append(commandSign + c)
 				#send_message_without_event("Press [Up] or [Down] to cycle through available commands.", false)
 				lineEdit.text = tempLine
@@ -322,15 +345,22 @@ func _process(delta):
 		rect_global_position = get_global_mouse_position() - startWindowDragPos
 
 
+func set_default_text_color(color : Color):
+	$offset/richTextLabel.set("custom_colors/default_color", color)
+	$offset/lineEdit.set("custom_colors/font_color", color)
+
+
 func toggle_console() -> void:
 	if isShown:
 		hide()
 	else:
 		show()
+		animation.playback_speed = 1.0
 		play_animation()
 		lineEdit.grab_focus()
 		
 	isShown = !isShown
+
 
 func get_last_message() -> String:
 	return messages.back()
@@ -348,7 +378,8 @@ func grab_line_focus() -> void:
 func add_command(command : Command) -> void:
 	commands.append(command)
 	
-func remove_command(commandName : String) -> bool:
+	
+func remove_command_by_name(commandName : String) -> bool:
 	for i in range(commands.size()):
 		if commands[i].get_name() == commandName:
 			commands.remove(i)
@@ -356,157 +387,193 @@ func remove_command(commandName : String) -> bool:
 	return false
 	
 	
-func send_msg(msg : String):
-	if msg.empty():
-		return
-	
-	if not resetSwitch:
-		messages.pop_back()
-	resetSwitch = true
-	
-	# let the message be switched through
-	messages.append(msg)
-	currentIndex += 1
-	messageHistory += msg
+func new_line():
+	append_message_no_event("\n", false)
 	
 	
+func clear_flags():
+	_flags = ""
+	_antiFlags = ""
 	
+	
+func append_flags(flags : int):
+	if (flags & BBCode.BOLD) == BBCode.BOLD:
+		_flags += "[b]"
+		_antiFlags.insert(0, "[/b]")
+	if (flags & BBCode.ITALICS) == BBCode.ITALICS:
+		_flags += "[i]"
+		_antiFlags.insert(0, "[/i]")
+	if (flags & BBCode.UNDERLINE) == BBCode.UNDERLINE:
+		_flags += "[u]"
+		_antiFlags.insert(0, "[/u]")
+	if (flags & BBCode.CODE) == BBCode.CODE:
+		_flags += "[code]"
+		_antiFlags.insert(0, "[/code]")
+	if (flags & BBCode.CENTER) == BBCode.CENTER:
+		_flags += "[center]"
+		_antiFlags.insert(0, "[/center]")
+	if (flags & BBCode.RIGHT) == BBCode.RIGHT:
+		_flags += "[right]"
+		_antiFlags.insert(0, "[/right]")
+	if (flags & BBCode.FILL) == BBCode.FILL:
+		_flags += "[fill]"
+		_antiFlags.insert(0, "[/fill]")
+	if (flags & BBCode.INDENT) == BBCode.INDENT:
+		_flags += "[indent]"
+		_antiFlags.insert(0, "[/indent]")
+	if (flags & BBCode.URL) == BBCode.URL:
+		_flags += "[url]"
+		_antiFlags.insert(0, "[/url]")
 
+
+func write(message : String, clickable = false, sendToConsole = true, flags = 0):
+	append_message(message, clickable, sendToConsole, flags)
 	
 	
-func send_message(message : String):
+func writeLine(message : String, clickable = false, sendToConsole = true, flags = 0):
+	append_message(message, clickable, sendToConsole, flags)
+	new_line()
+ 
+
+func append_message_no_event(message : String, clickableMeta = false, sendToConsole = true, flags = 0):
 	if message.empty():
 		return
+
+	if _flags.empty(): # load flags if not passed
+		append_flags(flags)
+	
+	if message.empty():
+		return
+	
+	if clickableMeta:
+		textLabel.push_meta(message) # meta click, writes meta to console
 		
-	if not resetSwitch:
-		messages.pop_back()
-	resetSwitch = true
+	if _flags.length() > 0:
+		textLabel.append_bbcode(_flags) # bbcode
+	
+	
+	if sendToConsole:
+		textLabel.append_bbcode(message) # actual message
+	
+	if clickableMeta:
+		textLabel.pop()
+		
+	if _flags.length() > 0:
+		textLabel.append_bbcode(_antiFlags)
+		
+	clear_flags()
+	
+
+func append_message(message : String, clickableMeta = false, sendToConsole = true, flags = 0): 
+	if message.empty():
+		return
 	
 	# let the message be switched through
 	messages.append(message)
-	currentIndex += 1
-	messageHistory += message
+	currentIndex = -1
+	allText += message
 	
-	# logging
-	#logFile.write_log(message)
+	append_message_no_event(message, clickableMeta, sendToConsole, flags)
+
+	if message[0] == commandSign: # check if the input is a command
+		execute_command(message)
+
+	emit_signal("on_message_sent", lineEdit.text)	
 	
-	# check if the input is a command
-	if message[0] == commandSign:
-		var currentCommand = message
-		currentCommand = currentCommand.trim_prefix(commandSign)
-		if is_input_real_command(currentCommand):
-			# return the command and the whole message
-			var cmd = get_command(currentCommand)
-			if cmd == null:
-				textLabel.add_text("Command not found!\n")
-				return
+
+func execute_command(message : String):
+	var currentCommand = message
+	currentCommand = currentCommand.trim_prefix(commandSign) # remove command sign
+	if is_input_command(currentCommand):
+		# return the command and the whole message
+		var cmd = get_command(currentCommand)
+		if cmd == null:
+			new_line()
+			append_message_no_event(COMMAND_NOT_FOUND_MSG)
+			new_line()
+			return
 			
-			var found = false
-			for i in range(commands.size()):
-				if commands[i].get_name() == cmd.get_name(): # found command
-					textLabel.add_text(message)
-					
-					textLabel.newline()
-					found = true
-					var args = _extract_arguments(currentCommand)
-					if not args.size() in cmd.get_ref().get_expected_arguments():
-						send_message_without_event("expected: ", false, false) 
-						_print_args(i)
-						send_message_without_event(" arguments!", false, false)
-						
-						if addNewLineAfterCommand:
-							textLabel.newline()
-					else:
-						cmd.apply(_extract_arguments(currentCommand))
-						
+		var found = false
+		for i in range(commands.size()):
+			if commands[i].get_name() == cmd.get_name(): # found command
+				found = true
+				var args = _extract_arguments(currentCommand)
+				if cmd.get_ref().get_expected_arguments().size() == 1 and \
+						cmd.get_ref().get_expected_arguments()[0] == VARIADIC_COMMANDS: # custom amount of arguments
+					cmd.apply(args)
 					emit_signal("on_command_sent", cmd, currentCommand)
 					break
-			if not found:
-				textLabel.add_text("Commnd not found!\n")
-		else:
-			textLabel.add_text("Command not found!\n")
+					
+				if not args.size() in cmd.get_ref().get_expected_arguments():
+					new_line()
+					append_message_no_event("expected: ")
+					_print_args(i)
+					append_message_no_event(" arguments!")
+					
+					if addNewLineAfterCommand:
+						new_line()
+				else:
+					cmd.apply(_extract_arguments(currentCommand))
+					
+				emit_signal("on_command_sent", cmd, currentCommand)
+				break
+		if not found:
+			new_line()
+			append_message_no_event(COMMAND_NOT_FOUND_MSG)
+			new_line()
 	else:
-		textLabel.add_text(message)
-	#textLabel.newline()
-		
-	emit_signal("on_message_sent", lineEdit.text)
-	lineEdit.clear()
-	 
-	
-func send_message_without_event(message : String, clickable = false, newLine = true):
-	if message.empty():
-		return
-	
-	if clickable:
-		textLabel.push_meta(message)
-		textLabel.append_bbcode("[b][u]")
-	
-	messageHistory += message
-	textLabel.add_text(message)
-	if newLine:
-		textLabel.newline()
-	lineEdit.clear()
-	
-	if clickable:
-		textLabel.pop()
-		textLabel.pop()
-		textLabel.pop()
+		new_line()
+		append_message_no_event(COMMAND_NOT_FOUND_MSG)
+		new_line()
+
 
 # check first for real command
-func get_command(cmdName : String) -> Command:
+func get_command(command : String) -> Command:
 	var regex = RegEx.new()
-	# if command looks like: "/..."
-	regex.compile("^(\\S+)\\s?.*$")
-	var result = regex.search(cmdName)
+	var cmdName = command.split(" ", false)[0]
 	
-	if result:
-		cmdName = result.get_string(1)
-		for com in commands:
-			if com.get_name() == cmdName:
-				# commands[com] is the value
-				return com
-	return null
+	for com in commands:
+		if com.get_name() == cmdName:
+			return com # commands[com] is the value
+			
+	return null # if not found
 	
-
+	
 # before calling this method check for command sign
-func is_input_real_command(cmdName : String) -> bool:
-	if cmdName.empty():
+func is_input_command(message : String) -> bool:
+	if message.empty():
 		return false
 		
-	var regex = RegEx.new()
-	regex.compile("^(\\S+).*$")
-	var result = regex.search(cmdName)
+	var cmdName : String = message.split(" ", false)[0]
+	cmdName = cmdName.trim_prefix(commandSign)
 	
-	
-	if result:
-		cmdName = result.get_string(1)
-		for com in commands:
-			if com.get_name() == cmdName:
-				# commands[com] is the value
-				return true
+	for com in commands:
+		if com.get_name() == cmdName:
+			return true
 	return false
 	
 
-func get_closest_commands(cmdName : String) -> Array:
-	if cmdName.empty() or cmdName[0] != commandSign:
+func get_closest_commands(command : String) -> Array:
+	if command.empty() or command[0] != commandSign:
 		return []
 	
-	var regex = RegEx.new()
-	regex.compile("^%s(\\S+).*$" % commandSign)
-	var result = regex.search(cmdName)
-
 	var results = []
-
-	if result:
-		cmdName = result.get_string(1)
-		for com in commands:
-			if cmdName.to_lower() in com.get_name().lower():	
-				results.append(com.get_name())
+	var cmdName : String = command.split(" ", false)[0]
+	cmdName = cmdName.trim_prefix(commandSign)
 		
-		return results
-		
-	else:
-		return []
+	for com in commands:
+		if com.get_name().length() < cmdName.length():
+			continue
+		var addToResults = true
+		for i in range(cmdName.length()):
+			if not cmdName[i].to_lower() == com.get_name()[i].to_lower():
+				addToResults = false
+				break
+				
+		if addToResults:
+			results.append(com.get_name())
+				
+	return results
 
 
 func _extract_arguments(commandPostFix : String) -> Array:
@@ -517,8 +584,14 @@ func _extract_arguments(commandPostFix : String) -> Array:
 
 func _on_send_pressed():
 	if not lineEdit.text.empty():
-		send_message(lineEdit.text + str("\n"))
+		send_line()
 	lineEdit.grab_focus()
+	
+
+func send_line():
+	append_message(lineEdit.text)
+	new_line()
+	lineEdit.text = ""
 	
 
 func _on_richTextLabel_meta_clicked(meta):
@@ -552,21 +625,17 @@ func _on_hideConsole_button_up():
 func _print_args(commandIndex : int):
 	var i = commandIndex
 	if commands[i].get_expected_args().size() > 1:
-		send_message_without_event("", false, false)
 		for arg in range(commands[i].get_expected_args().size()):
-			send_message_without_event("%s" % commands[i].get_expected_args()[arg], false, false)
+			append_message_no_event("%s" % commands[i].get_expected_args()[arg])
 			if arg == commands[i].get_expected_args().size() - 2:
-				send_message_without_event(" or " + \
-						str(commands[i].get_expected_args()[arg+1]), false, false)
+				append_message_no_event(" or " + str(commands[i].get_expected_args()[arg+1]))
 				break
 			else:
-				send_message_without_event(", ", false, false)
-		send_message_without_event("", false, false)
+				append_message_no_event(", ")
 	
 	elif commands[i].get_expected_args().size() == 1: 
-		send_message_without_event("1", false, false)
-	
+		append_message_no_event("1")
 	else:
-		send_message_without_event("0", false, false)
+		append_message_no_event("0")
 
 
