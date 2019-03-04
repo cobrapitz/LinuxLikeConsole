@@ -80,7 +80,7 @@ func change_background_color(input : Array):
 
 ***
 
-```
+```gdscript
 #short version
 
 const CommandRef = preload("res://console/command_ref.gd")
