@@ -32,6 +32,7 @@
 
 ### Drawbacks
 * #### parameter access of custom functions with Arrays (see example below)
+* #### window not resizeable (only with 'setDock' in runtime)
 
 
 ### How to create custom commands
