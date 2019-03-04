@@ -47,7 +47,7 @@ var currentIndex := 0
 
 var startWindowDragPos : Vector2
 var dragging : bool
-var mdefaultSize := Vector2(800.0, 425.0)
+var mdefaultSize := Vector2(550.0, 275.0)
 
 var commands := []
 var basicCommandsSize := 0
@@ -57,20 +57,26 @@ const VARIADIC_COMMANDS = 65535 # amount of parameters
 
 var isShown := true
 
+var _ctrlPressed = false
+var _setCaretPosToLast = false
+
 const toggleConsole := KEY_QUOTELEFT
+
 
 # export vars
 
+export(String, "blue", "dark", "light", "gray", "ubuntu", "arch_aqua", "arch_green", "windows") var designSelector = "arch_green" setget update_theme
 export(String, "top", "bottom", "left", "right", "full_screen", "custom") var dockingStation = "custom" setget update_docking
-export(String, "blue", "dark", "light", "gray") var designSelector setget update_theme
+export(bool) var showButton = false setget update_visibility_button
+export(bool) var showLine = false setget update_visibility_line
 export(Color) var titleBarColor = Color(0, 0.18, 0.62, 0.95) setget update_tile_bar_color
+export(bool) var roundedTitleBar = true setget update_corner 
 export(Color) var backgroundColor = Color(0.09,0.09,0.16, 0.87) setget update_background_color
 export(Color) var lineEditColor = Color() setget update_line_edit_color
 export(Color) var buttonColor = Color(1.0, 1.0, 1.0, 1.0) setget update_button_color
-export(String, "black", "white", "gray", "green", "red", "yellow", "blue") var textColorSelector = Color.white setget update_text_color
-export(bool) var showButton = false setget update_visibility_button
-export(bool) var showLine = false setget update_visibility_line
+export(String, "black", "white", "gray", "green", "red", "yellow", "blue", "aqua") var textColorSelector = Color.white setget update_text_color
 export(bool) var enableWindowDrag = true 
+export(bool) var logEnabled = false 
 export(String) var userMessageSign = ">" setget update_lineEdit
 export(String) var commandSign := "/"
 export(bool) var addNewLineAfterCommand = false 
@@ -80,14 +86,81 @@ export(String) var autoComplete = "ui_focus_next"
 
 var textColor
 
+var _customThemes : Dictionary = {
+	"blue" : {
+		"titleBarColor" : Color(0, 0.18, 0.62, 0.95),
+		"backgroundColor" : Color(0.09, 0.09, 0.16, 0.87),
+		"lineEditColor" : Color(0.21, 0.21, 0.21, 0.82),
+		"textColor" : "white",
+		"buttonColor" : Color(0.14, 0.14, 0.18, 0.34),
+		"roundedTitleBar" : true
+	}, 
+	"dark": {
+		"titleBarColor" : Color(0, 0, 0, 0.95),
+		"backgroundColor" : Color(0.06, 0.06, 0.08, 0.88),
+		"lineEditColor" : Color(0.21, 0.21, 0.21, 0.82),
+		"textColor" : "white",
+		"buttonColor" : Color(0.14, 0.14, 0.18, 0.34),
+		"roundedTitleBar" : true
+	},
+	"light": {
+		"titleBarColor" : Color(1.0, 1.0, 1.0, 0.95),
+		"backgroundColor" : Color(1.0, 1.0, 1.0, 0.5),
+		"lineEditColor" : Color(0.87, 0.87, 0.87, 0.71),
+		"textColor" : "black",
+		"buttonColor" : Color(0.14, 0.14, 0.18, 0.34),
+		"roundedTitleBar" : true
+	},
+	"gray": {
+		"titleBarColor" : Color(0.24, 0.24, 0.24, 0.95),
+		"backgroundColor" : Color(0.03, 0.03, 0.03, 0.5),
+		"lineEditColor" : Color(0.21, 0.21, 0.21, 0.82),
+		"textColor" : "white",
+		"buttonColor" : Color(0.14, 0.14, 0.18, 0.34),
+		"roundedTitleBar" : true
+	},
+	"ubuntu": {
+		"titleBarColor" : Color(0.3, 0.3, 0.3, 0.95),
+		"backgroundColor" : Color(0.26, 0.0, 0.27, 0.9),
+		"lineEditColor" : Color(0.13, 0.0, 0.18, 0.77),
+		"textColor" : "white",
+		"buttonColor" : Color(0.01, 0.01, 0.01, 0.34),
+		"roundedTitleBar" : true
+	},
+	"arch_aqua": {
+		"titleBarColor" : Color(0.35, 0.34, 0.34, 0.98),
+		"backgroundColor" : Color(0.0, 0.25, 0.38, 0.87),
+		"lineEditColor" : Color(0.21, 0.35, 0.66, 0.82),
+		"textColor" : "aqua",
+		"buttonColor" : Color(0.26, 0.27, 0.63, 0.34),
+		"roundedTitleBar" : true
+	},
+	"arch_green": {
+		"titleBarColor" : Color(0.30, 0.27, 0.27, 1.0),
+		"backgroundColor" : Color(0.0, 0.0, 0.0, 0.98),
+		"lineEditColor" : Color(0.24, 0.24, 0.24, 0.98),
+		"textColor" : "green",
+		"buttonColor" : Color(0.3, 0.3, 0.32, 0.34),
+		"roundedTitleBar" : true
+	},
+	"windows": {
+		"titleBarColor" : Color(1.0, 1.0, 1.0, 1.0),
+		"backgroundColor" : Color(0.0, 0.0, 0.0, 1.0),
+		"lineEditColor" : Color(0.11, 0.11,0.11, 0.82),
+		"textColor" : "white",
+		"buttonColor" : Color(0.22, 0.22, 0.22, 0.34),
+		"roundedTitleBar" : false
+	}
+}
+
 # export vars setget funcs
 
 func update_docking(dock):
 	if !is_inside_tree():
 		return
 	
-	if dock != "custom" and dockingStation == "custom":
-		mdefaultSize = rect_size
+	#if dock != "custom" and dockingStation == "custom":
+	#	mdefaultSize = rect_size
 	
 	dockingStation = dock
 	
@@ -101,8 +174,8 @@ func update_docking(dock):
 			rect_size.y = mdefaultSize.y
 		"bottom":
 			rect_position = Vector2(0.0, rectSize.y - mdefaultSize.y)
-			rect_size.x = rectSize.x
 			rect_size.y = mdefaultSize.y
+			rect_size.x = rectSize.x
 		"left":
 			rect_position = Vector2(0.0, 0.0)
 			rect_size.x = rectSize.x * 0.5
@@ -120,9 +193,6 @@ func update_docking(dock):
 		_:
 			return
 
-		
-			
-			
 func update_button_color(color):
 	buttonColor = color
 	
@@ -140,63 +210,64 @@ func update_line_edit_color(color):
 		
 
 func update_text_color(selected):
-	textColorSelector = selected
-	
 	if has_node("offset/richTextLabel") and $offset/richTextLabel != null and \
 			has_node("offset/lineEdit") and $offset/lineEdit != null:
-		match (selected):
-			"black":
-				textColor = Color.black
-			"white":
-				textColor = Color.white
-			"gray":
-				textColor = Color.gray
-			"green":
-				textColor = Color.green
-			"red":
-				textColor = Color.red
-			"yellow":
-				textColor = Color.yellow
-			"blue":
-				textColor = Color.blue
-			_:
-				print("no such font " + str(selected))
-				return
+		if typeof(selected) == TYPE_COLOR:
+			textColorSelector = "custom"
+			textColor = selected
+		else:
+			textColorSelector = selected
+	
+			match (selected):
+				"black":
+					textColor = Color.black
+				"white":
+					textColor = Color.white
+				"gray":
+					textColor = Color.gray
+				"green":
+					textColor = Color.green
+				"red":
+					textColor = Color.red
+				"yellow":
+					textColor = Color.yellow
+				"blue":
+					textColor = Color.blue
+				"aqua":
+					textColor = Color.aqua
+				_:
+					return
 		set_default_text_color(textColor)
 				
 				
 func update_theme(selected):
 	designSelector = selected
-	match (selected):
-		"blue":
-			titleBarColor = Color(0, 0.18, 0.62, 0.95)
-			backgroundColor = Color(0.09, 0.09, 0.16, 0.87)
-			lineEditColor = Color(0.21, 0.21, 0.21, 0.82)
-			textColor = "white"
-			buttonColor = Color(0.14, 0.14, 0.18, 0.34)
-		"dark":
-			titleBarColor = Color(0, 0, 0, 0.95)
-			backgroundColor = Color(0.06, 0.06, 0.08, 0.88)
-			lineEditColor = Color(0.21, 0.21, 0.21, 0.82)
-			textColor = "white"
-			buttonColor = Color(0.14, 0.14, 0.18, 0.34)
-		"light":
-			titleBarColor = Color(1.0, 1.0, 1.0, 0.95)
-			backgroundColor = Color(1.0, 1.0, 1.0, 0.5)
-			lineEditColor = Color(0.87, 0.87, 0.87, 0.71)
-			textColor = "black"
-			buttonColor = Color(0.14, 0.14, 0.18, 0.34)
-		"gray":
-			titleBarColor = Color(0.24, 0.24, 0.24, 0.95)
-			backgroundColor = Color(0.03, 0.03, 0.03, 0.5)
-			lineEditColor = Color(0.21, 0.21, 0.21, 0.82)
-			textColor = "white"
-			buttonColor = Color(0.14, 0.14, 0.18, 0.34)
-		_:
-			print("no such theme " + str(selected))
-			return
-	_update_theme_related_elements()
+	
+	if _customThemes.has(selected):
+		var selectedTheme = _customThemes[selected]
+		titleBarColor = selectedTheme["titleBarColor"]
+		backgroundColor = selectedTheme["backgroundColor"]
+		lineEditColor = selectedTheme["lineEditColor"]
+		textColor = selectedTheme["textColor"]
+		buttonColor = selectedTheme["buttonColor"]
+		roundedTitleBar = selectedTheme["roundedTitleBar"]
+		_update_theme_related_elements()
+	else:
+		print("no such theme " + str(selected))
 
+
+func update_corner(rounded : bool):
+	roundedTitleBar = rounded
+	if has_node("offset/titleBarBackground") and $offset/titleBarBackground != null:
+		var newStyle = $offset/titleBarBackground.theme.get("Panel/styles/panel")
+		 
+		if rounded:
+			newStyle.set("corner_radius_top_left", 7)
+			newStyle.set("corner_radius_top_right", 7)
+		if not rounded:
+			newStyle.set("corner_radius_top_left", 0)
+			newStyle.set("corner_radius_top_right", 0)
+		
 
 func _update_theme_related_elements():
 	update_text_color(textColor)
@@ -204,6 +275,7 @@ func _update_theme_related_elements():
 	update_background_color(backgroundColor)
 	update_line_edit_color(lineEditColor)
 	update_button_color(buttonColor)
+	update_corner(roundedTitleBar)
 	property_list_changed_notify() # to see the changes in the editor
 	
 			
@@ -270,8 +342,6 @@ func _init():
 	add_basic_commands()
 	basicCommandsSize = commands.size()
 	
-	update_docking(dockingStation)
-	
 	
 func add_basic_commands():
 	DefaultCommands.new(self)
@@ -280,7 +350,7 @@ func add_basic_commands():
 func _input(event):
 	if event is InputEventKey and event.scancode == toggleConsole and event.is_pressed() and not event.is_echo():
 		toggle_console()
-		
+
 		
 	# left or right mouse button pressed
 	# test if really needed
@@ -292,14 +362,20 @@ func _input(event):
 			else:
 				lineEdit.focus_mode = FOCUS_CLICK
 	
-	if event is InputEventKey and event.is_pressed() and not event.is_echo():
-		if event.scancode == KEY_ENTER:
-			if not lineEdit.text.empty():
-				send_line()
-		if event.scancode == KEY_ESCAPE:
-			lineEdit.text = ""
-
-			
+	if event is InputEventKey:
+		if event.is_pressed() and not event.is_echo():
+			if event.scancode == KEY_ENTER:
+				if not lineEdit.text.empty():
+					send_line()
+			if event.scancode == KEY_ESCAPE:
+				lineEdit.text = ""
+			if event.scancode == KEY_CONTROL:
+				_ctrlPressed = true		
+			if event.scancode == KEY_LEFT and not _ctrlPressed and lineEdit.get_cursor_position() == 0:
+				_setCaretPosToLast = true
+		else:
+			if event.scancode == KEY_CONTROL:
+				_ctrlPressed = false
 		
 	if event.is_action_pressed(previous_message_history):
 		if messages.empty():
@@ -310,6 +386,8 @@ func _input(event):
 		elif currentIndex > messages.size() - 1:
 			currentIndex = 0
 		lineEdit.text = messages[currentIndex]
+		grab_line_focus()
+		lineEdit.set_cursor_position(lineEdit.text.length())
 		
 	elif event.is_action_pressed(next_message_history):
 		if messages.empty():
@@ -320,7 +398,7 @@ func _input(event):
 		elif currentIndex > messages.size() - 1:
 			currentIndex = 0
 		lineEdit.text = messages[currentIndex]
-		
+
 	if event.is_action_pressed(autoComplete):
 		var closests = get_closest_commands(lineEdit.text)
 		if  closests != null:
@@ -340,15 +418,34 @@ func _input(event):
 				lineEdit.set_cursor_position(lineEdit.text.length())
 
 
+
 func _process(_delta):
 	if dragging and enableWindowDrag:
 		rect_global_position = get_global_mouse_position() - startWindowDragPos
+	
+	if _setCaretPosToLast:
+		_setCaretPosToLast = false
+		lineEdit.set_cursor_position(lineEdit.text.length())
+
+
+func add_theme(themeName : String, \
+			titleBarColor, backgroundColor, lineEditColor, textColor, buttonColor, roundedTitleBar : bool):
+	
+	_customThemes[themeName] = {
+		"titleBarColor" : titleBarColor,
+		"backgroundColor" : backgroundColor,
+		"lineEditColor" : lineEditColor,
+		"textColor" : textColor,
+		"buttonColor" : buttonColor,
+		"roundedTitleBar" : roundedTitleBar
+	}
+	
 
 
 func set_default_text_color(color : Color):
 	$offset/richTextLabel.set("custom_colors/default_color", color)
 	$offset/lineEdit.set("custom_colors/font_color", color)
-
+	
 
 func toggle_console() -> void:
 	if isShown:
@@ -454,6 +551,8 @@ func append_message_no_event(message : String, clickableMeta = false, sendToCons
 	
 	if sendToConsole:
 		textLabel.append_bbcode(message) # actual message
+		if logEnabled:
+			add_to_log(message)
 	
 	if clickableMeta:
 		textLabel.pop()
@@ -471,7 +570,6 @@ func append_message(message : String, clickableMeta = false, sendToConsole = tru
 	# let the message be switched through
 	messages.append(message)
 	currentIndex = -1
-	allText += message
 	
 	append_message_no_event(message, clickableMeta, sendToConsole, flags)
 
@@ -535,7 +633,12 @@ func get_command(command : String) -> Command:
 		if com.get_name() == cmdName:
 			return com
 	return null # if not found
-	
+
+
+func copy_command(command : Command) -> Command:
+	var newCommand = Command.new(command.get_name(), command.get_ref(), command.get_args(), command.get_description())
+	return newCommand
+
 	
 # before calling this method check for command sign
 func is_input_command(message : String) -> bool:
@@ -588,8 +691,8 @@ func _on_send_pressed():
 
 func send_line():
 	append_message(lineEdit.text)
-	new_line()
 	lineEdit.text = ""
+	new_line()
 	
 
 func _on_richTextLabel_meta_clicked(meta):
@@ -619,6 +722,48 @@ func _on_hideConsole_button_up():
 		toggle_console()
 
 
+func _on_console_resized():
+	if dockingStation != "custom":
+		match (dockingStation):
+			"top":
+				mdefaultSize.y = rect_size.y
+			"left":
+				mdefaultSize.x = rect_size.x
+			"right":
+				mdefaultSize.x = rect_size.x
+			"bottom":
+				mdefaultSize.y = rect_size.y
+			"full_screen":
+				return
+			_:
+				print("not registered docking: " + dockingStation)
+	
+		
+
+func add_to_log(message : String):
+	allText += message
+	var dir = Directory.new()
+	if not dir.dir_exists("res://logs"):
+		dir.make_dir("res://logs")
+	var file = File.new()
+	file.open("res://logs/consolelog.txt", file.READ_WRITE)
+	file.seek_end()
+	file.store_string(message)
+	file.close()
+
+
+func save_log_to_file(path : String):
+	var fileName = path
+	
+	var dir = Directory.new()
+	if not dir.dir_exists(fileName):
+		print("dir does not exists to save log file!")
+	var file = File.new()
+	file.open(fileName, file.WRITE_READ)
+	file.store_string(allText)
+	file.close()
+	
+
 # Array printer
 func _print_args(commandIndex : int):
 	var i = commandIndex
@@ -635,5 +780,3 @@ func _print_args(commandIndex : int):
 		append_message_no_event("1")
 	else:
 		append_message_no_event("0")
-
-

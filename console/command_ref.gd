@@ -35,6 +35,9 @@ func get_type():
 func get_expected_arguments() -> Array:
 	return _argsExpected
 
+func set_expected_arguments(args : Array):
+	_argsExpected = args
+
 func apply(args : Array):
 	match (_type):
 		COMMAND_REF_TYPE.FUNC:

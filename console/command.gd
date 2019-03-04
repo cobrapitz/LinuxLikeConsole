@@ -1,5 +1,3 @@
-extends Reference
-
 class_name Command
 
 const CommandRef = preload("res://console/command_ref.gd")
@@ -14,6 +12,7 @@ func _init(name : String, cmdRef, args : Array, description : String):
 	_cmdRef = cmdRef
 	_args = args
 	_description = description 
+	
 
 func apply(args : Array):
 	if args.empty():

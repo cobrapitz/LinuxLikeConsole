@@ -75,6 +75,9 @@ func _init(console):
 	var setTextColorCommand = Command.new('setDefaultTextColor', setTextColorRef, [], 'Sets the default text color.')
 	console.add_command(setTextColorCommand)
 
+	var aliasRef = CommandRef.new(self, "alias", CommandRef.COMMAND_REF_TYPE.FUNC, _consoleRef.VARIADIC_COMMANDS)
+	var aliasCommand = Command.new('alias', aliasRef, [], 'Sets an alias for a command\narg 1: newname\narg 2: command.')
+	console.add_command(aliasCommand)
 	
 #	var sendRef = CommandRef.new(self, "send", CommandRef.COMMAND_REF_TYPE.FUNC, _consoleRef.VARIADIC_COMMANDS)
 #	var sendCommand = Command.new('send', sendRef, [], 'send.')
@@ -89,6 +92,26 @@ func _init(console):
 #		output += input[i]
 #
 #	_consoleRef.append_message(output)
+
+
+func alias(input : Array):
+	var cmd = _consoleRef.get_command(input[1])
+	if cmd == null:
+		_consoleRef.append_message(_consoleRef.COMMAND_NOT_FOUND_MSG)
+		return
+		
+	var command = _consoleRef.copy_command(cmd)
+	command.set_name(input[0])
+	if input.size() > 2:
+		var args : Array
+		for ti in range(input.size() - 2):
+			var i = ti + 2
+			args.append(input[i])
+		command.set_args(args)
+		command.get_ref().set_expected_arguments([command.get_ref().get_expected_arguments().size() - (input.size() - 2)])
+		
+	_consoleRef.add_command(command)
+	
 
 func set_default_text_color(input : Array):
 	if input.size() == 1:
