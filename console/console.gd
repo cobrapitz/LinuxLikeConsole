@@ -274,7 +274,7 @@ func _init():
 	
 	
 func add_basic_commands():
-	DefaultCommands.new(self) 
+	DefaultCommands.new(self)
 
 
 func _input(event):
@@ -340,7 +340,7 @@ func _input(event):
 				lineEdit.set_cursor_position(lineEdit.text.length())
 
 
-func _process(delta):
+func _process(_delta):
 	if dragging and enableWindowDrag:
 		rect_global_position = get_global_mouse_position() - startWindowDragPos
 
@@ -399,31 +399,31 @@ func clear_flags():
 func append_flags(flags : int):
 	if (flags & BBCode.BOLD) == BBCode.BOLD:
 		_flags += "[b]"
-		_antiFlags.insert(0, "[/b]")
+		_antiFlags = _antiFlags.insert(0, "[/b]")
 	if (flags & BBCode.ITALICS) == BBCode.ITALICS:
 		_flags += "[i]"
-		_antiFlags.insert(0, "[/i]")
+		_antiFlags = _antiFlags.insert(0, "[/i]")
 	if (flags & BBCode.UNDERLINE) == BBCode.UNDERLINE:
 		_flags += "[u]"
-		_antiFlags.insert(0, "[/u]")
+		_antiFlags = _antiFlags.insert(0, "[/u]")
 	if (flags & BBCode.CODE) == BBCode.CODE:
 		_flags += "[code]"
-		_antiFlags.insert(0, "[/code]")
+		_antiFlags = _antiFlags.insert(0, "[/code]")
 	if (flags & BBCode.CENTER) == BBCode.CENTER:
 		_flags += "[center]"
-		_antiFlags.insert(0, "[/center]")
+		_antiFlags = _antiFlags.insert(0, "[/center]")
 	if (flags & BBCode.RIGHT) == BBCode.RIGHT:
 		_flags += "[right]"
-		_antiFlags.insert(0, "[/right]")
+		_antiFlags = _antiFlags.insert(0, "[/right]")
 	if (flags & BBCode.FILL) == BBCode.FILL:
 		_flags += "[fill]"
-		_antiFlags.insert(0, "[/fill]")
+		_antiFlags = _antiFlags.insert(0, "[/fill]")
 	if (flags & BBCode.INDENT) == BBCode.INDENT:
 		_flags += "[indent]"
-		_antiFlags.insert(0, "[/indent]")
+		_antiFlags = _antiFlags.insert(0, "[/indent]")
 	if (flags & BBCode.URL) == BBCode.URL:
 		_flags += "[url]"
-		_antiFlags.insert(0, "[/url]")
+		_antiFlags = _antiFlags.insert(0, "[/url]")
 
 
 func write(message : String, clickable = false, sendToConsole = true, flags = 0):
@@ -529,13 +529,11 @@ func execute_command(message : String):
 
 # check first for real command
 func get_command(command : String) -> Command:
-	var regex = RegEx.new()
-	var cmdName = command.split(" ", false)[0]
+	var cmdName = command.split(" ", false)[0] 
 	
 	for com in commands:
 		if com.get_name() == cmdName:
-			return com # commands[com] is the value
-			
+			return com
 	return null # if not found
 	
 	
