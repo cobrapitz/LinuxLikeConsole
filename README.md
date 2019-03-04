@@ -5,8 +5,9 @@
 
 ![Console](https://i.ibb.co/DG0qmN2/LLC.png)
 
-toggle with: key above tab
+##### toggle with: key above tab
 
+[click for more pictures](https://github.com/cobrapitz/LinuxLikeConsole/wiki/Showcase)
 
 ## ![Wiki](https://github.com/cobrapitz/LinuxLikeConsole/wiki)
 
