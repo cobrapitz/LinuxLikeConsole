@@ -13,7 +13,8 @@ signal on_command_sent
 # types
 const Command = preload("res://console/command.gd")
 const CommandRef = preload("res://console/command_ref.gd")
-
+const ConsoleUser = preload("res://console/console_user.gd")
+const ConsoleRights = preload("res://console/console_rights.gd")
 const DefaultCommands = preload("res://console/default_commands.gd")
 
 enum BBCode {
@@ -52,6 +53,8 @@ var mdefaultSize := Vector2(550.0, 275.0)
 var commands := []
 var basicCommandsSize := 0
 
+var user : ConsoleUser
+
 const VARIADIC_COMMANDS = 65535 # amount of parameters
 
 
@@ -65,6 +68,8 @@ const toggleConsole := KEY_QUOTELEFT
 
 # export vars
 
+export(String) var userName = "dev" setget update_user_name
+export(String, "user", "tester", "moderator", "admin", "dev") var userRights = "dev" setget update_user_rights
 export(String, "blue", "dark", "light", "gray", "ubuntu", "arch_aqua", "arch_green", "windows") var designSelector = "arch_green" setget update_theme
 export(String, "top", "bottom", "left", "right", "full_screen", "custom") var dockingStation = "custom" setget update_docking
 export(bool) var showButton = false setget update_visibility_button
@@ -81,8 +86,11 @@ export(bool) var logEnabled = false
 export(String) var userMessageSign = ">" setget update_lineEdit
 export(String) var commandSign := "/"
 export(bool) var addNewLineAfterCommand = false 
-export(String) var next_message_history = "ui_down"
-export(String) var previous_message_history = "ui_up"
+#export(String) var next_message_history = "ui_down"
+export(String, "slide_in_console", "slide_in_console_2", "none") var slideInAnimation = "slide_in_console" setget update_slide_in_animation 
+const next_message_history = "ui_down"
+#export(String) var previous_message_history = "ui_up"
+const previous_message_history = "ui_up"
 export(String) var autoComplete = "ui_focus_next"
 
 var textColor
@@ -156,6 +164,21 @@ var _customThemes : Dictionary = {
 
 # export vars setget funcs
 
+func update_slide_in_animation(anim):
+	slideInAnimation = anim
+	
+
+
+func update_user_name(uName : String):
+	userName = uName
+	user.set_name(userName)
+
+
+func update_user_rights(rightsName : String):
+	userRights = rightsName
+	user.set_rights(ConsoleRights.get_rights_by_name(rightsName))
+
+
 func update_visibility_titlebar(show):
 	showTitleBar = show
 	if has_node("offset/titleBar") and $offset/titleBar != null and \
@@ -176,7 +199,6 @@ func update_visibility_titlebar(show):
 func update_docking(dock):
 	if !is_inside_tree():
 		return
-	
 	#if dock != "custom" and dockingStation == "custom":
 	#	mdefaultSize = rect_size
 	
@@ -217,7 +239,8 @@ func update_docking(dock):
 			return
 		_:
 			return
-	update_visibility_titlebar(showTitlebar)
+	update_visibility_titlebar(showTitlebar) # it is reachable
+
 
 func update_button_color(color):
 	buttonColor = color
@@ -365,18 +388,22 @@ func update_visibility_line(show):
 func _init():
 	set_process_input(true)
 	
+	user = ConsoleUser.new(userName)
 	add_basic_commands()
 	basicCommandsSize = commands.size()
+	
 	
 	
 func add_basic_commands():
 	DefaultCommands.new(self)
 
+func send(message : String, clickable = false, sendToConsole = true, flags = 0):
+	append_message(message, clickable, sendToConsole, flags)
+	new_line()
 
 func _input(event):
 	if event is InputEventKey and event.scancode == toggleConsole and event.is_pressed() and not event.is_echo():
 		toggle_console()
-
 		
 	# left or right mouse button pressed
 	# test if really needed
@@ -445,7 +472,6 @@ func _input(event):
 				lineEdit.set_cursor_position(lineEdit.text.length())
 
 
-
 func _process(_delta):
 	if dragging and enableWindowDrag:
 		rect_global_position = get_global_mouse_position() - startWindowDragPos
@@ -466,7 +492,6 @@ func add_theme(themeName : String, \
 		"buttonColor" : buttonColor,
 		"roundedTitleBar" : roundedTitleBar
 	}
-	
 
 
 func set_default_text_color(color : Color):
@@ -491,7 +516,8 @@ func get_last_message() -> String:
 	
 
 func play_animation() -> void:
-	animation.play("slide_in_console")
+	if slideInAnimation != "none":
+		animation.play(slideInAnimation)
 	
 
 func grab_line_focus() -> void:
@@ -554,12 +580,17 @@ func write(message : String, clickable = false, sendToConsole = true, flags = 0)
 	append_message(message, clickable, sendToConsole, flags)
 	
 	
-func writeLine(message : String, clickable = false, sendToConsole = true, flags = 0):
+func write_line(message : String, clickable = false, sendToConsole = true, flags = 0):
 	append_message(message, clickable, sendToConsole, flags)
 	new_line()
  
 
-func append_message_no_event(message : String, clickableMeta = false, sendToConsole = true, flags = 0):
+func send_message(message : String, clickable = false, sendToConsole = true, flags = 0):
+	append_message(message, clickable, sendToConsole, flags)
+	new_line()
+
+
+func append_message_no_event(message : String,  clickableMeta = false, sendToConsole = true, flags = 0):
 	if message.empty():
 		return
 
@@ -622,6 +653,13 @@ func execute_command(message : String):
 		for i in range(commands.size()):
 			if commands[i].get_name() == cmd.get_name(): # found command
 				found = true
+				if not cmd.get_call_rights().are_rights_sufficient(user.get_rights()):
+					new_line()
+					append_message_no_event("Not sufficient rights as %s." % ConsoleRights.get_rights_name(user.get_rights()))
+					new_line()
+					break
+				
+				
 				var args = _extract_arguments(currentCommand)
 				if cmd.get_ref().get_expected_arguments().size() == 1 and \
 						cmd.get_ref().get_expected_arguments()[0] == VARIADIC_COMMANDS: # custom amount of arguments
@@ -663,7 +701,7 @@ func get_command(command : String) -> Command:
 
 
 func copy_command(command : Command) -> Command:
-	var newCommand = Command.new(command.get_name(), command.get_ref(), command.get_args(), command.get_description())
+	var newCommand = Command.new(command.get_name(), command.get_ref(), command.get_args(), command.get_description(), command.get_call_rights())
 	return newCommand
 
 	
@@ -750,6 +788,7 @@ func _on_hideConsole_button_up():
 
 
 func _on_console_resized():
+
 	if dockingStation != "custom":
 		match (dockingStation):
 			"top":

@@ -1,25 +1,29 @@
 class_name Command
 
 const CommandRef = preload("res://console/command_ref.gd")
+const ConsoleRights = preload("res://console/console_rights.gd")
+
 
 var _name : String
 var _cmdRef 
 var _args : Array
 var _description : String = ""
+var _callRights : ConsoleRights
 
-func _init(name : String, cmdRef, args : Array, description : String):
+
+func _init(name : String, cmdRef, args : Array, description : String, callRights):
 	_name = name
 	_cmdRef = cmdRef
 	_args = args
 	_description = description 
-	
+	_callRights = ConsoleRights.new()
+	_callRights.set_rights(callRights)
 
 func apply(args : Array):
 	if args.empty():
 		_cmdRef.apply(_args)
 	else:
 		_cmdRef.apply(args)
-		
 
 func set_name(name : String):
 	_name = name
@@ -32,6 +36,13 @@ func set_args(args : Array):
 	
 func set_description(description : String):
 	_description = description
+	
+# set_call_rights( ConsoleRights.CallRights.DEV )
+func set_call_rights(rights : ConsoleRights):
+	_callRights = rights
+
+func get_call_rights() -> ConsoleRights:
+	return _callRights
 
 func get_expected_args() -> Array:
 	return _cmdRef.get_expected_arguments()

@@ -3,6 +3,7 @@ extends Node
 class_name DefaultCommands
 
 var _firstHelp := true
+const ConsoleRights = preload("res://console/console_rights.gd")
 
 #const Console = preload("res://console/console.gd") #!cyclic
 
@@ -12,82 +13,81 @@ var _consoleRef #: Console
 func _init(console):
 	_consoleRef = console
 	var exitRef = CommandRef.new(self, "exit", CommandRef.COMMAND_REF_TYPE.FUNC, 0)
-	var exitCommand = Command.new('exit',  exitRef, [], 'Closes the console.')
+	var exitCommand = Command.new('exit',  exitRef, [], 'Closes the console.', ConsoleRights.CallRights.DEV)
 	console.add_command(exitCommand)
 	
 	var clearRef = CommandRef.new(self, "clear", CommandRef.COMMAND_REF_TYPE.FUNC, 0)
-	var clearCommand = Command.new('clear', clearRef, [], 'Clears the console.')
+	var clearCommand = Command.new('clear', clearRef, [], 'Clears the console.', ConsoleRights.CallRights.USER)
 	console.add_command(clearCommand)
 	
 	var manRef = CommandRef.new(self, "man", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
-	var manCommand = Command.new('man', manRef, [], 'shows command description.')
+	var manCommand = Command.new('man', manRef, [], 'shows command description.', ConsoleRights.CallRights.USER)
 	console.add_command(manCommand)
 	
 	var helpRef = CommandRef.new(self, "help", CommandRef.COMMAND_REF_TYPE.FUNC, 0)
-	var helpCommand = Command.new('help', helpRef, [], 'shows all user defined commands.')
+	var helpCommand = Command.new('help', helpRef, [], 'shows all user defined commands.', ConsoleRights.CallRights.USER)
 	console.add_command(helpCommand)
 	
 	var helpAllRef = CommandRef.new(self, "help_all", CommandRef.COMMAND_REF_TYPE.FUNC, 0)
-	var helpAllCommand = Command.new('helpAll', helpAllRef, [], 'shows all commands.')
+	var helpAllCommand = Command.new('helpAll', helpAllRef, [], 'shows all commands.', ConsoleRights.CallRights.USER)
 	console.add_command(helpAllCommand)
 	
 	var incSizeRef = CommandRef.new(self, "increase_size", CommandRef.COMMAND_REF_TYPE.FUNC, [0, 1, 2])
-	var incSizeCommand = Command.new('++', incSizeRef, [], 'Increases the command size width.')
+	var incSizeCommand = Command.new('++', incSizeRef, [], 'Increases the command size width.', ConsoleRights.CallRights.USER)
 	console.add_command(incSizeCommand)
 	
 	var decSizeRef = CommandRef.new(self, "decrease_size", CommandRef.COMMAND_REF_TYPE.FUNC, [0, 1, 2])
-	var decSizeCommand = Command.new('--', decSizeRef, [], 'Decreases the command size width.')
+	var decSizeCommand = Command.new('--', decSizeRef, [], 'Decreases the command size width.', ConsoleRights.CallRights.USER)
 	console.add_command(decSizeCommand)
 	
 	var setCommandSignRef = CommandRef.new(self, "set_command_sign", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
-	var setCommandSignCommand = Command.new('setCommandSign', setCommandSignRef, [], 'Sets new command sign. (default: \'/\')')
+	var setCommandSignCommand = Command.new('setCommandSign', setCommandSignRef, [], 'Sets new command sign. (default: \'/\')', ConsoleRights.CallRights.USER)
 	console.add_command(setCommandSignCommand)
 	
 	var toggleButtonRef = CommandRef.new(self, "toggle_button", CommandRef.COMMAND_REF_TYPE.FUNC, 0)
-	var toggleButtonCommand = Command.new('toggleButton', toggleButtonRef, [], 'Toggles visibility of \'send\' button.')
+	var toggleButtonCommand = Command.new('toggleButton', toggleButtonRef, [], 'Toggles visibility of \'send\' button.', ConsoleRights.CallRights.USER)
 	console.add_command(toggleButtonCommand)
 	
 	var toggleEditLineRef = CommandRef.new(self, "toggle_edit_line", CommandRef.COMMAND_REF_TYPE.FUNC, 0)
-	var toggleEditLineCommand = Command.new('toggleShowEditLine', toggleEditLineRef, [], 'Toggles visibility of edit line.')
+	var toggleEditLineCommand = Command.new('toggleShowEditLine', toggleEditLineRef, [], 'Toggles visibility of edit line.', ConsoleRights.CallRights.USER)
 	console.add_command(toggleEditLineCommand)
 	
 	var setUserMessageSignRef = CommandRef.new(self, "set_user_msg_sign", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
-	var setUserMessageSignCommand = Command.new('setUserMessageSign', setUserMessageSignRef, [], 'Sets new sign for user messages. (default: \'>\')')
+	var setUserMessageSignCommand = Command.new('setUserMessageSign', setUserMessageSignRef, [], 'Sets new sign for user messages. (default: \'>\')', ConsoleRights.CallRights.USER)
 	console.add_command(setUserMessageSignCommand)
 	
 	var toggleNewLineAfterRef = CommandRef.new(self, "toggle_add_new_line_after_cmd", CommandRef.COMMAND_REF_TYPE.FUNC, 0)
-	var toggleNewLineAfterCommand = Command.new('toggleNewLineAfterCommand', toggleNewLineAfterRef, [], 'Toggles new line after commands. (default: \'off\'')
+	var toggleNewLineAfterCommand = Command.new('toggleNewLineAfterCommand', toggleNewLineAfterRef, [], 'Toggles new line after commands. (default: \'off\'', ConsoleRights.CallRights.USER)
 	console.add_command(toggleNewLineAfterCommand)
 	
 	var toggleWindowDragRef = CommandRef.new(self, "toggle_window_drag", CommandRef.COMMAND_REF_TYPE.FUNC, 0)
-	var toggleWindowDragCommand = Command.new('toggleWindowDrag', toggleWindowDragRef, [], 'Toggles whether the console is draggable or not.')
+	var toggleWindowDragCommand = Command.new('toggleWindowDrag', toggleWindowDragRef, [], 'Toggles whether the console is draggable or not.', ConsoleRights.CallRights.USER)
 	console.add_command(toggleWindowDragCommand)
 	
 	var setThemeRef = CommandRef.new(self, "set_theme", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
-	var setThemeCommand = Command.new('setTheme', setThemeRef, [], 'Sets the theme.')
+	var setThemeCommand = Command.new('setTheme', setThemeRef, [], 'Sets the theme.', ConsoleRights.CallRights.USER)
 	console.add_command(setThemeCommand)
 	
 	var setDockRef = CommandRef.new(self, "set_dock", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
-	var setDockCommand = Command.new('setDock', setDockRef, [], 'Sets the docking station.')
+	var setDockCommand = Command.new('setDock', setDockRef, [], 'Sets the docking station.', ConsoleRights.CallRights.USER)
 	console.add_command(setDockCommand)
 	
 	var setTextColorRef = CommandRef.new(self, "set_default_text_color", CommandRef.COMMAND_REF_TYPE.FUNC, [1,3,4])
-	var setTextColorCommand = Command.new('setDefaultTextColor', setTextColorRef, [], 'Sets the default text color.')
+	var setTextColorCommand = Command.new('setDefaultTextColor', setTextColorRef, [], 'Sets the default text color.', ConsoleRights.CallRights.USER)
 	console.add_command(setTextColorCommand)
 
 	var aliasRef = CommandRef.new(self, "alias", CommandRef.COMMAND_REF_TYPE.FUNC, _consoleRef.VARIADIC_COMMANDS)
-	var aliasCommand = Command.new('alias', aliasRef, [], 'Sets an alias for a command\narg 1: newname\narg 2: command.')
+	var aliasCommand = Command.new('alias', aliasRef, [], 'Sets an alias for a command\narg 1: newname\narg 2: command.', ConsoleRights.CallRights.USER)
 	console.add_command(aliasCommand)
 	
 	var toggleTitlebarRef = CommandRef.new(self, "toggle_titlebar", CommandRef.COMMAND_REF_TYPE.FUNC, 0)
-	var toggleTitlebarCommand = Command.new('toggleTitlebar', toggleTitlebarRef, [], 'Toggles the titlebar.')
+	var toggleTitlebarCommand = Command.new('toggleTitlebar', toggleTitlebarRef, [], 'Toggles the titlebar.', ConsoleRights.CallRights.USER)
 	console.add_command(toggleTitlebarCommand)
 	
 	var setConsoleSizeRef = CommandRef.new(self, "set_console_size", CommandRef.COMMAND_REF_TYPE.FUNC, 2)
-	var setConsoleSizeCommand = Command.new('setConsoleSize', setConsoleSizeRef, [], 'Sets the console size.')
+	var setConsoleSizeCommand = Command.new('setConsoleSize', setConsoleSizeRef, [], 'Sets the console size.', ConsoleRights.CallRights.USER)
 	console.add_command(setConsoleSizeCommand)
 	
-
 	
 #	var sendRef = CommandRef.new(self, "send", CommandRef.COMMAND_REF_TYPE.FUNC, _consoleRef.VARIADIC_COMMANDS)
 #	var sendCommand = Command.new('send', sendRef, [], 'send.')
