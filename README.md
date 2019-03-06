@@ -59,13 +59,15 @@ func _ready():
     # @param2: CommandRef you created before
     # @param3: predefined parameters
     # @param4: description, can be shown by /help or /man <command>
-    var printCommand = Command.new('test_print', printRef, [], 'Custom print.')
+    var printCommand = Command.new('test_print', printRef, [], \
+    		'Custom print.', ConsoleRights.CallRights.USER)
     testConsole.add_command(printCommand)
 
     # more practical example 
     # note: number of args can vary
     var bgColorRef = CommandRef.new(self, "change_background_color", CommandRef.COMMAND_REF_TYPE.FUNC, [3,4])
-    var bgColorCommand = Command.new('changeBackgroundColor', bgColorRef, [], 'Changes the color of the background.')
+    var bgColorCommand = Command.new('changeBackgroundColor', bgColorRef, [], \
+    		'Changes the color of the background.', ConsoleRights.CallRights.USER)
     testConsole.add_command(bgColorCommand)
 
 # called with: /test_print hello
