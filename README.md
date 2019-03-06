@@ -1,6 +1,6 @@
 # LinuxLikeConsole
 ### Linux Like Console written in gdscript for Godot (Game Engine)
-###### For additional features just write an issue or write an email 
+###### For additional features or problems just write an issue, write an email or Discord cobrapitz#2872
 
 
 ![Console](https://i.ibb.co/DG0qmN2/LLC.png)
