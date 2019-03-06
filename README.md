@@ -5,7 +5,7 @@
 
 ![Console](https://i.ibb.co/DG0qmN2/LLC.png)
 
-##### toggle with: key above tab
+###### toggle with: key above tab
 
 [click for more pictures](https://github.com/cobrapitz/LinuxLikeConsole/wiki/Showcase)
 
@@ -27,6 +27,7 @@
 * [x] easy BBcode support (like: [b]this is bold[/b])
 * [x] (simple) logging 
 * [x] custom/built in themes (arch theme, ubuntu theme, windows, light, dark)
+* [x] user mode (commands have priviliges) (v1.1)
 
 ![functions](https://i.imgur.com/7740jiH.png)
 
@@ -51,20 +52,22 @@ func _ready():
     # @param2: method name
     # @param3: type (FUNC or VAR)
     # @param4: expected amount of parameters
-    var exitRef = CommandRef.new(self, "my_print", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
+    var printRef = CommandRef.new(self, "my_print", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
  
     # CommandRef: 
     # @param1: how to call the name in the console (here: /test_print)
     # @param2: CommandRef you created before
     # @param3: predefined parameters
     # @param4: description, can be shown by /help or /man <command>
-    var exitCommand = Command.new('test_print', exitRef, [], 'Custom print.')
-    testConsole.add_command(exitCommand)
+    var printCommand = Command.new('test_print', printRef, [], \
+    		'Custom print.', ConsoleRights.CallRights.USER)
+    testConsole.add_command(printCommand)
 
     # more practical example 
     # note: number of args can vary
     var bgColorRef = CommandRef.new(self, "change_background_color", CommandRef.COMMAND_REF_TYPE.FUNC, [3,4])
-    var bgColorCommand = Command.new('changeBackgroundColor', bgColorRef, [], 'Changes the color of the background.')
+    var bgColorCommand = Command.new('changeBackgroundColor', bgColorRef, [], \
+    		'Changes the color of the background.', ConsoleRights.CallRights.USER)
     testConsole.add_command(bgColorCommand)
 
 # called with: /test_print hello
