@@ -69,6 +69,7 @@ export(String, "blue", "dark", "light", "gray", "ubuntu", "arch_aqua", "arch_gre
 export(String, "top", "bottom", "left", "right", "full_screen", "custom") var dockingStation = "custom" setget update_docking
 export(bool) var showButton = false setget update_visibility_button
 export(bool) var showLine = false setget update_visibility_line
+export(bool) var showTitleBar = true setget update_visibility_titlebar
 export(Color) var titleBarColor = Color(0, 0.18, 0.62, 0.95) setget update_tile_bar_color
 export(bool) var roundedTitleBar = true setget update_corner 
 export(Color) var backgroundColor = Color(0.09,0.09,0.16, 0.87) setget update_background_color
@@ -155,6 +156,23 @@ var _customThemes : Dictionary = {
 
 # export vars setget funcs
 
+func update_visibility_titlebar(show):
+	showTitleBar = show
+	if has_node("offset/titleBar") and $offset/titleBar != null and \
+			has_node("offset/hideConsole") and $offset/hideConsole != null:
+		$offset/titleBar.visible = show
+		
+		if show:
+			$offset/textBackground.margin_top = 14
+		else:
+			$offset/textBackground.margin_top = 0
+
+		if show:
+			$offset/hideConsole.show()
+		else:
+			$offset/hideConsole.hide()
+
+
 func update_docking(dock):
 	if !is_inside_tree():
 		return
@@ -163,6 +181,7 @@ func update_docking(dock):
 	#	mdefaultSize = rect_size
 	
 	dockingStation = dock
+	var showTitlebar
 	
 	var rectSize : Vector2
 	rectSize = get_viewport_rect().size
@@ -172,26 +191,33 @@ func update_docking(dock):
 			rect_position = Vector2(0.0, 0.0)
 			rect_size.x = rectSize.x
 			rect_size.y = mdefaultSize.y
+			showTitlebar = false
 		"bottom":
 			rect_position = Vector2(0.0, rectSize.y - mdefaultSize.y)
 			rect_size.y = mdefaultSize.y
 			rect_size.x = rectSize.x
+			showTitlebar = false
 		"left":
 			rect_position = Vector2(0.0, 0.0)
 			rect_size.x = rectSize.x * 0.5
 			rect_size.y = rectSize.y
+			showTitlebar = false
 		"right":
 			rect_position = Vector2(rectSize.x * 0.5,  0.0)
 			rect_size.x = rectSize.x * 0.5
 			rect_size.y = rectSize.y
+			showTitlebar = false
 		"full_screen":
 			rect_position = Vector2(0.0, 0.0)
 			rect_size = rectSize
+			showTitlebar = false
 		"custom":
 			rect_size = mdefaultSize
+			showTitlebar = true
 			return
 		_:
 			return
+	update_visibility_titlebar(showTitlebar)
 
 func update_button_color(color):
 	buttonColor = color
@@ -413,6 +439,7 @@ func _input(event):
 					new_line()
 					append_message_no_event(commandSign + c, true)
 					messages.append(commandSign + c)
+				new_line()
 				#send_message_without_event("Press [Up] or [Down] to cycle through available commands.", false)
 				lineEdit.text = tempLine
 				lineEdit.set_cursor_position(lineEdit.text.length())

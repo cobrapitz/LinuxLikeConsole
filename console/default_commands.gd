@@ -79,6 +79,16 @@ func _init(console):
 	var aliasCommand = Command.new('alias', aliasRef, [], 'Sets an alias for a command\narg 1: newname\narg 2: command.')
 	console.add_command(aliasCommand)
 	
+	var toggleTitlebarRef = CommandRef.new(self, "toggle_titlebar", CommandRef.COMMAND_REF_TYPE.FUNC, 0)
+	var toggleTitlebarCommand = Command.new('toggleTitlebar', toggleTitlebarRef, [], 'Toggles the titlebar.')
+	console.add_command(toggleTitlebarCommand)
+	
+	var setConsoleSizeRef = CommandRef.new(self, "set_console_size", CommandRef.COMMAND_REF_TYPE.FUNC, 2)
+	var setConsoleSizeCommand = Command.new('setConsoleSize', setConsoleSizeRef, [], 'Sets the console size.')
+	console.add_command(setConsoleSizeCommand)
+	
+
+	
 #	var sendRef = CommandRef.new(self, "send", CommandRef.COMMAND_REF_TYPE.FUNC, _consoleRef.VARIADIC_COMMANDS)
 #	var sendCommand = Command.new('send', sendRef, [], 'send.')
 #	console.add_command(sendCommand)
@@ -92,6 +102,14 @@ func _init(console):
 #		output += input[i]
 #
 #	_consoleRef.append_message(output)
+
+
+func set_console_size(input : Array):
+	_consoleRef.rect_size = Vector2(float(input[0]), float(input[1]))
+
+
+func toggle_titlebar(_input : Array):
+	_consoleRef.update_visibility_titlebar(!_consoleRef.get_node("offset/titleBar").visible)
 
 
 func alias(input : Array):
