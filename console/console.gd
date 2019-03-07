@@ -182,7 +182,8 @@ func update_user_rights(rightsName : String):
 func update_visibility_titlebar(show):
 	showTitleBar = show
 	if has_node("offset/titleBar") and $offset/titleBar != null and \
-			has_node("offset/hideConsole") and $offset/hideConsole != null:
+			has_node("offset/hideConsole") and $offset/hideConsole != null and \
+			has_node("offset/titleBarBackground") and $offset/titleBarBackground != null:
 		$offset/titleBar.visible = show
 		
 		if show:
@@ -194,7 +195,10 @@ func update_visibility_titlebar(show):
 			$offset/hideConsole.show()
 		else:
 			$offset/hideConsole.hide()
-
+		if show:
+			$offset/titleBarBackground.show()
+		else:
+			$offset/titleBarBackground.hide()
 
 func update_docking(dock):
 	if !is_inside_tree():
