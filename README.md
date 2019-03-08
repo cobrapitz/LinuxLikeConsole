@@ -27,7 +27,11 @@
 * [x] custom/built in themes (arch theme, ubuntu theme, windows, light, dark, **new** text_only (in v2.0))
 * [x] user mode (commands have priviliges) (v1.1)
 
-![functions](https://i.imgur.com/7740jiH.png)
+***
+
+![functions](https://github.com/cobrapitz/LinuxLikeConsole/blob/master/showcase/console10.PNG)
+
+***
 
 ### Drawbacks
 * #### parameter access of custom functions with Arrays (see example below)
