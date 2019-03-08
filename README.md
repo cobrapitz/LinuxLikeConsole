@@ -11,9 +11,9 @@
 
 ## [Showcase](https://github.com/cobrapitz/LinuxLikeConsole/wiki/Showcase)
 
-***
+## [Wiki](https://github.com/cobrapitz/LinuxLikeConsole/wiki)
 
-## ![Wiki](https://github.com/cobrapitz/LinuxLikeConsole/wiki)
+## [Changelog](https://github.com/cobrapitz/LinuxLikeConsole/wiki/Changelog)
 
 ***
 
