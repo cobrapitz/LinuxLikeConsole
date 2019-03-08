@@ -17,16 +17,14 @@
 * [x] dragable console
 * [x] built in commands like
   * [x] /man [command]
-  * [x] /help (shows user defined commands)
+  * [x] /help or /helpAll (shows user-defined/all commands)
   * [x] /exit (hides console)
-  * [x] /clear (clears text history)
-  * [x] /helpAll (shows all commands)
   * [x] /alias [newName] [command] [args...]
 * [x] slide in animation
 * [x] predefined and runtime forwarded parameters (runtime forwarding is prioritized)
 * [x] easy BBcode support (like: [b]this is bold[/b])
 * [x] (simple) logging 
-* [x] custom/built in themes (arch theme, ubuntu theme, windows, light, dark)
+* [x] custom/built in themes (arch theme, ubuntu theme, windows, light, dark, **new** text_only (in v2.0))
 * [x] user mode (commands have priviliges) (v1.1)
 
 ![functions](https://i.imgur.com/7740jiH.png)
