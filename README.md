@@ -3,7 +3,7 @@
 ###### For additional features or problems just write an issue, write an email or Discord cobrapitz#2872
 
 
-![Console](https://i.ibb.co/DG0qmN2/LLC.png)
+![Console](https://github.com/cobrapitz/LinuxLikeConsole/blob/master/showcase/consoleFront.PNG)
 
 ###### toggle with: key above tab
 
