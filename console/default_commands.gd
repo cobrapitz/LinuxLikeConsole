@@ -294,6 +294,7 @@ func help(_input : Array):
 	
 	for ti in range(_consoleRef.commands.size() - _consoleRef.basicCommandsSize):
 		var i = ti + _consoleRef.basicCommandsSize
+		_consoleRef.new_line()
 		_consoleRef.append_message_no_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], false, false, true)
 		_consoleRef.append_message_no_event(": %s" % _consoleRef.commands[i].get_description())
 		_consoleRef.append_message_no_event(" (args: ")
