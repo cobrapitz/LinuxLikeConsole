@@ -41,8 +41,11 @@ func set_description(description : String):
 func set_call_rights(rights : ConsoleRights):
 	_callRights = rights
 
-func get_call_rights() -> ConsoleRights:
-	return _callRights
+func get_call_rights() -> int:
+	return _callRights.get_rights()
+	
+func are_rights_sufficient(rights) -> bool:
+	return _callRights.are_rights_sufficient(rights)
 
 func get_expected_args() -> Array:
 	return _cmdRef.get_expected_arguments()

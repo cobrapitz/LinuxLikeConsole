@@ -88,7 +88,20 @@ func _init(console):
 	var setConsoleSizeCommand = Command.new('setConsoleSize', setConsoleSizeRef, [], 'Sets the console size.', ConsoleRights.CallRights.USER)
 	console.add_command(setConsoleSizeCommand)
 	
+	var toggleTextBackgroundRef = CommandRef.new(self, "toggle_text_background", CommandRef.COMMAND_REF_TYPE.FUNC, 0)
+	var toggleTextBackgroundCommand = Command.new('toggleTextBackground', toggleTextBackgroundRef, [], 'Toggles the text background.', ConsoleRights.CallRights.USER)
+	console.add_command(toggleTextBackgroundCommand)
 	
+	var setUserColorRef = CommandRef.new(self, "set_user_color", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
+	var setUserColorCommand = Command.new('setUserColor', setUserColorRef, [], 'Sets the color of the users name.', ConsoleRights.CallRights.USER)
+	console.add_command(setUserColorCommand)
+	
+	var showDefaultCommandsRef = CommandRef.new(self, "show_default_commands", CommandRef.COMMAND_REF_TYPE.FUNC, 0)
+	var helpDefaultCommand = Command.new('helpDefault', showDefaultCommandsRef, [], 'Shows only the default commands.', ConsoleRights.CallRights.USER)
+	var showDefaultCommandsCommand = Command.new('showDefaultCommands', showDefaultCommandsRef, [], 'Shows only the default commands.', ConsoleRights.CallRights.USER)
+	console.add_command(helpDefaultCommand)
+	console.add_command(showDefaultCommandsCommand)
+		
 #	var sendRef = CommandRef.new(self, "send", CommandRef.COMMAND_REF_TYPE.FUNC, _consoleRef.VARIADIC_COMMANDS)
 #	var sendCommand = Command.new('send', sendRef, [], 'send.')
 #	console.add_command(sendCommand)
@@ -102,6 +115,24 @@ func _init(console):
 #		output += input[i]
 #
 #	_consoleRef.append_message(output)
+
+func set_user_color(input : Array):
+	_consoleRef.update_user_name_color(input[0])
+
+
+func show_default_commands(_input : Array):
+	_consoleRef.new_line()
+	for i in range(_consoleRef.basicCommandsSize):
+		_consoleRef.append_message_no_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], false, false, true)
+		_consoleRef.append_message_no_event(": %s" % _consoleRef.commands[i].get_description())
+		_consoleRef.append_message_no_event(" (args: ")
+		_consoleRef._print_args(i)
+		_consoleRef.append_message_no_event(")")
+		_consoleRef.new_line()
+
+
+func toggle_text_background(_input : Array):
+	_consoleRef.update_text_background(!_consoleRef.showTextBackground)
 
 
 func set_console_size(input : Array):
@@ -125,11 +156,11 @@ func alias(input : Array):
 	var command = _consoleRef.copy_command(cmd)
 	command.set_name(input[0])
 	if input.size() > 2:
-		var args : Array
+		var _args : Array
 		for ti in range(input.size() - 2):
 			var i = ti + 2
-			args.append(input[i])
-		command.set_args(args)
+			_args.append(input[i])
+		command.set_args(_args)
 		command.get_ref().set_expected_arguments([command.get_ref().get_expected_arguments().size() - (input.size() - 2)])
 		
 	_consoleRef.add_command(command)
@@ -155,7 +186,7 @@ func set_theme(input : Array):
 func help_all(_input : Array):
 	_consoleRef.new_line()
 	for i in range(_consoleRef.commands.size()):
-		_consoleRef.append_message_no_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], true)
+		_consoleRef.append_message_no_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], false, false, true)
 		_consoleRef.append_message_no_event(": %s" % _consoleRef.commands[i].get_description())
 		_consoleRef.append_message_no_event(" (args: ")
 		_consoleRef._print_args(i)
@@ -188,11 +219,11 @@ func toggle_edit_line(_input : Array):
 	
 	
 func set_user_msg_sign(input : Array):
-	_consoleRef.update_lineEdit(input[0])
+	_consoleRef.update_line_edit(input[0])
 	
 	
 func toggle_add_new_line_after_cmd(_input : Array):
-	_consoleRef.addNewLineAfterCommand = ! _consoleRef.addNewLineAfterCommand
+	_consoleRef.addNewLineAfterMsg = ! _consoleRef.addNewLineAfterMsg
 	
 	
 func toggle_window_drag(_input : Array):
@@ -243,7 +274,7 @@ func man(input : Array):
 	_consoleRef.new_line()
 	for i in range(_consoleRef.commands.size()):
 		if _consoleRef.commands[i].get_name() == command:
-			_consoleRef.append_message_no_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], true)
+			_consoleRef.append_message_no_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], false, false, true)
 			_consoleRef.append_message_no_event(": %s" % _consoleRef.commands[i].get_description())
 			_consoleRef.append_message_no_event(" (args: ")
 			_consoleRef._print_args(i)
@@ -255,18 +286,17 @@ func man(input : Array):
 		
 	
 func help(_input : Array):
+	_consoleRef.new_line()
 	if _firstHelp:
 		_firstHelp = false
 		_consoleRef.append_message_no_event("'help' shows user added commands. Use 'helpAll' to show all commands")
 		_consoleRef.new_line()
 	
-	_consoleRef.new_line()
 	for ti in range(_consoleRef.commands.size() - _consoleRef.basicCommandsSize):
 		var i = ti + _consoleRef.basicCommandsSize
-		_consoleRef.append_message_no_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], true)
+		_consoleRef.append_message_no_event("%s%s" % [_consoleRef.commandSign, _consoleRef.commands[i].get_name()], false, false, true)
 		_consoleRef.append_message_no_event(": %s" % _consoleRef.commands[i].get_description())
 		_consoleRef.append_message_no_event(" (args: ")
 		_consoleRef._print_args(i)
 		_consoleRef.append_message_no_event(")")
-		_consoleRef.new_line()
 		

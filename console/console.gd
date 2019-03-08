@@ -53,7 +53,7 @@ var mdefaultSize := Vector2(550.0, 275.0)
 var commands := []
 var basicCommandsSize := 0
 
-var user : ConsoleUser
+var user := ConsoleUser.new("user") 
 
 const VARIADIC_COMMANDS = 65535 # amount of parameters
 
@@ -66,103 +66,232 @@ var _setCaretPosToLast = false
 const toggleConsole := KEY_QUOTELEFT
 
 
-# export vars
 
+# export vars
 export(String) var userName = "dev" setget update_user_name
-export(String, "user", "tester", "moderator", "admin", "dev") var userRights = "dev" setget update_user_rights
-export(String, "blue", "dark", "light", "gray", "ubuntu", "arch_aqua", "arch_green", "windows") var designSelector = "arch_green" setget update_theme
+export(String, "none", "user", "tester", "moderator", "admin", "dev") var userRights = "dev" setget update_user_rights
+export(String, "blue", "dark", "light", "gray", "ubuntu", "arch_aqua", "arch_green", "windows", "text_only") var designSelector = "arch_green" setget update_theme
 export(String, "top", "bottom", "left", "right", "full_screen", "custom") var dockingStation = "custom" setget update_docking
 export(bool) var showButton = false setget update_visibility_button
-export(bool) var showLine = false setget update_visibility_line
-export(bool) var showTitleBar = true setget update_visibility_titlebar
-export(Color) var titleBarColor = Color(0, 0.18, 0.62, 0.95) setget update_tile_bar_color
-export(bool) var roundedTitleBar = true setget update_corner 
-export(Color) var backgroundColor = Color(0.09,0.09,0.16, 0.87) setget update_background_color
-export(Color) var lineEditColor = Color() setget update_line_edit_color
 export(Color) var buttonColor = Color(1.0, 1.0, 1.0, 1.0) setget update_button_color
-export(String, "black", "white", "gray", "green", "red", "yellow", "blue", "aqua") var textColorSelector = Color.white setget update_text_color
+export(bool) var showLine = false setget update_visibility_line
+export(Color) var lineEditColor = Color() setget update_line_edit_color
+export(bool) var showTitleBar = true setget update_visibility_titlebar
+export(bool) var roundedTitleBar = true setget update_corner 
+export(Color) var titleBarColor = Color(0, 0.18, 0.62, 0.95) setget update_tile_bar_color
+export(bool) var showTextBackground = true setget update_text_background
+export(Color) var textBackgroundColor = Color(0.58, 0.58, 0.58, 0.13) setget update_text_background_color
+export(Color) var backgroundColor = Color(0.09,0.09,0.16, 0.87) setget update_background_color
+
+#export(Color)\
+export(String, "aqua", "black", "blue", "fuchsia", "gray", "green", "maroon", "purple", "red", "silver", "teal", "white", "yellow") \
+var userNameColorName = "teal" setget update_user_name_color
+export(String, "aqua", "black", "blue", "fuchsia", "gray", "green", "maroon", "purple", "red", "silver", "teal", "white", "yellow") \
+var textColorSelector = "white" setget update_text_color
+
 export(bool) var enableWindowDrag = true 
 export(bool) var logEnabled = false 
-export(String) var userMessageSign = ">" setget update_lineEdit
+export(String) var userMessageSign = ">" setget update_line_edit
 export(String) var commandSign := "/"
-export(bool) var addNewLineAfterCommand = false 
+export(bool) var sendMessageSign = true setget update_send_message_sign
+export(bool) var sendUserName = false setget update_send_user_name
+export(bool) var addNewLineAfterMsg = false 
+export(bool) var hideScrollBar = false setget update_hide_scroll_bar
 #export(String) var next_message_history = "ui_down"
 export(String, "slide_in_console", "slide_in_console_2", "none") var slideInAnimation = "slide_in_console" setget update_slide_in_animation 
-const next_message_history = "ui_down"
+const next_message_history := "ui_down"
 #export(String) var previous_message_history = "ui_up"
-const previous_message_history = "ui_up"
-export(String) var autoComplete = "ui_focus_next"
+const previous_message_history := "ui_up"
+#export(String) var autoComplete = "ui_focus_next"
+const autoComplete := "ui_focus_next"
 
-var textColor
+var textColor : Color
+var userNameColor : Color
 
 var _customThemes : Dictionary = {
 	"blue" : {
+		"dockingStation" : "custom",
+		"showButton" : false,
+		"showLine" : false,
+		"showTitleBar" : true,
+		"showTextBackground" : false,
 		"titleBarColor" : Color(0, 0.18, 0.62, 0.95),
+		"roundedTitleBar" : true,
 		"backgroundColor" : Color(0.09, 0.09, 0.16, 0.87),
 		"lineEditColor" : Color(0.21, 0.21, 0.21, 0.82),
-		"textColor" : "white",
 		"buttonColor" : Color(0.14, 0.14, 0.18, 0.34),
-		"roundedTitleBar" : true
+		"textBackgroundColor" : Color(0.0, 0.0, 0.0, 1.0),
+		"textColor" : "white",
+		"animation" : "slide_in_console_2",
+		"hideScrollBar" : false
 	}, 
 	"dark": {
+		"dockingStation" : "custom",
+		"showButton" : false,
+		"showLine" : false,
+		"showTitleBar" : true,
+		"showTextBackground" : false,
 		"titleBarColor" : Color(0, 0, 0, 0.95),
+		"roundedTitleBar" : true,
 		"backgroundColor" : Color(0.06, 0.06, 0.08, 0.88),
 		"lineEditColor" : Color(0.21, 0.21, 0.21, 0.82),
-		"textColor" : "white",
 		"buttonColor" : Color(0.14, 0.14, 0.18, 0.34),
-		"roundedTitleBar" : true
+		"textBackgroundColor" : Color(0.0, 0.0, 0.0, 1.0),
+		"textColor" : "white",
+		"animation" : "slide_in_console_2",
+		"hideScrollBar" : false
 	},
 	"light": {
+		"dockingStation" : "custom",
+		"showButton" : false,
+		"showLine" : false,
+		"showTitleBar" : true,
+		"showTextBackground" : false,
 		"titleBarColor" : Color(1.0, 1.0, 1.0, 0.95),
+		"roundedTitleBar" : true,
 		"backgroundColor" : Color(1.0, 1.0, 1.0, 0.5),
 		"lineEditColor" : Color(0.87, 0.87, 0.87, 0.71),
-		"textColor" : "black",
 		"buttonColor" : Color(0.14, 0.14, 0.18, 0.34),
-		"roundedTitleBar" : true
+		"textBackgroundColor" : Color(0.0, 0.0, 0.0, 1.0),
+		"textColor" : "black",
+		"animation" : "slide_in_console_2",
+		"hideScrollBar" : false
 	},
 	"gray": {
+		"dockingStation" : "custom",
+		"showButton" : false,
+		"showLine" : false,
+		"showTitleBar" : true,
+		"showTextBackground" : false,
 		"titleBarColor" : Color(0.24, 0.24, 0.24, 0.95),
+		"roundedTitleBar" : true,
 		"backgroundColor" : Color(0.03, 0.03, 0.03, 0.5),
 		"lineEditColor" : Color(0.21, 0.21, 0.21, 0.82),
-		"textColor" : "white",
 		"buttonColor" : Color(0.14, 0.14, 0.18, 0.34),
-		"roundedTitleBar" : true
+		"textBackgroundColor" : Color(0.0, 0.0, 0.0, 1.0),
+		"textColor" : "white",
+		"animation" : "slide_in_console_2",
+		"hideScrollBar" : false
 	},
 	"ubuntu": {
+		"dockingStation" : "custom",
+		"showButton" : false,
+		"showLine" : false,
+		"showTitleBar" : true,
+		"showTextBackground" : false,
 		"titleBarColor" : Color(0.3, 0.3, 0.3, 0.95),
 		"backgroundColor" : Color(0.26, 0.0, 0.27, 0.9),
 		"lineEditColor" : Color(0.13, 0.0, 0.18, 0.77),
-		"textColor" : "white",
 		"buttonColor" : Color(0.01, 0.01, 0.01, 0.34),
-		"roundedTitleBar" : true
+		"textBackgroundColor" : Color(0.0, 0.0, 0.0, 1.0),
+		"textColor" : "white",
+		"roundedTitleBar" : true,
+		"animation" : "slide_in_console_2",
+		"hideScrollBar" : false
 	},
 	"arch_aqua": {
+		"dockingStation" : "custom",
+		"showButton" : false,
+		"showLine" : false,
+		"showTitleBar" : true,
+		"showTextBackground" : false,
 		"titleBarColor" : Color(0.35, 0.34, 0.34, 0.98),
+		"roundedTitleBar" : true,
 		"backgroundColor" : Color(0.0, 0.25, 0.38, 0.87),
 		"lineEditColor" : Color(0.21, 0.35, 0.66, 0.82),
-		"textColor" : "aqua",
 		"buttonColor" : Color(0.26, 0.27, 0.63, 0.34),
-		"roundedTitleBar" : true
+		"textBackgroundColor" : Color(0.0, 0.0, 0.0, 1.0),
+		"textColor" : "aqua",
+		"animation" : "slide_in_console_2",
+		"hideScrollBar" : false
 	},
 	"arch_green": {
+		"dockingStation" : "custom",
+		"showButton" : false,
+		"showLine" : false,
+		"showTitleBar" : true,
+		"showTextBackground" : false,
 		"titleBarColor" : Color(0.30, 0.27, 0.27, 1.0),
+		"roundedTitleBar" : true,
 		"backgroundColor" : Color(0.0, 0.0, 0.0, 0.98),
 		"lineEditColor" : Color(0.24, 0.24, 0.24, 0.98),
-		"textColor" : "green",
 		"buttonColor" : Color(0.3, 0.3, 0.32, 0.34),
-		"roundedTitleBar" : true
+		"textBackgroundColor" : Color(0.0, 0.0, 0.0, 1.0),
+		"textColor" : "green",
+		"animation" : "slide_in_console_2",
+		"hideScrollBar" : false
 	},
 	"windows": {
+		"dockingStation" : "custom",
+		"showButton" : false,
+		"showLine" : false,
+		"showTitleBar" : true,
+		"showTextBackground" : false,
 		"titleBarColor" : Color(1.0, 1.0, 1.0, 1.0),
+		"roundedTitleBar" : false,
 		"backgroundColor" : Color(0.0, 0.0, 0.0, 1.0),
 		"lineEditColor" : Color(0.11, 0.11,0.11, 0.82),
-		"textColor" : "white",
 		"buttonColor" : Color(0.22, 0.22, 0.22, 0.34),
-		"roundedTitleBar" : false
+		"textBackgroundColor" : Color(0.0, 0.0, 0.0, 1.0),
+		"textColor" : "white",
+		"animation" : "slide_in_console_2",
+		"hideScrollBar" : false
+	},
+	"text_only": {
+		"dockingStation" : "custom",
+		"showButton" : false,
+		"showLine" : false,
+		"showTitleBar" : false,
+		"showTextBackground" : false,
+		"titleBarColor" : Color(1.0, 1.0, 1.0, 0.0),
+		"roundedTitleBar" : false,
+		"backgroundColor" : Color(0.0, 0.0, 0.0, 0.0),
+		"lineEditColor" : Color(0.11, 0.11,0.11, 0.0),
+		"buttonColor" : Color(0.22, 0.22, 0.22, 0.0),
+		"textBackgroundColor" : Color(0.0, 0.0, 0.0, 1.0),
+		"textColor" : "white",
+		"animation" : "slide_in_console_2",
+		"hideScrollBar" : false
 	}
 }
 
 # export vars setget funcs
+
+func update_hide_scroll_bar(hide):
+	hideScrollBar = hide
+	if has_node("offset/richTextLabel") and $offset/richTextLabel != null:
+		$offset/richTextLabel.scroll_active = not hide
+	property_list_changed_notify()
+
+
+func update_user_name_color(colorName):
+	userNameColorName = colorName
+	userNameColor = _get_color_by_name(userNameColorName)
+	
+	
+
+func update_send_message_sign(send):
+	sendMessageSign = send
+
+
+func update_send_user_name(send):
+	sendUserName = send
+
+
+func update_text_background_color(color):
+	textBackgroundColor = color 
+	
+	if has_node("offset/richTextLabel/background") and $offset/richTextLabel/background != null:
+		$offset/richTextLabel/background.color = color
+
+
+func update_text_background(show):
+	showTextBackground = show
+	
+	if has_node("offset/richTextLabel/background") and $offset/richTextLabel/background != null:
+		$offset/richTextLabel/background.set_visible(show)
+	
+
 
 func update_slide_in_animation(anim):
 	slideInAnimation = anim
@@ -178,27 +307,30 @@ func update_user_rights(rightsName : String):
 	userRights = rightsName
 	user.set_rights(ConsoleRights.get_rights_by_name(rightsName))
 
+	update_user_name_color(ConsoleRights.get_rights_color(ConsoleRights.get_rights_by_name(userRights)))
+	property_list_changed_notify()
+	
 
 func update_visibility_titlebar(show):
 	showTitleBar = show
 	if has_node("offset/titleBar") and $offset/titleBar != null and \
 			has_node("offset/hideConsole") and $offset/hideConsole != null and \
-			has_node("offset/titleBarBackground") and $offset/titleBarBackground != null:
-		$offset/titleBar.visible = show
+			has_node("offset/titleBarBackground") and $offset/titleBarBackground != null and \
+			has_node("offset/richTextLabel") and $offset/richTextLabel != null:
 		
+		$offset/titleBar.set_visible(show)
+		$offset/hideConsole.set_visible(show)
+		$offset/titleBarBackground.set_visible(show)
+			
 		if show:
 			$offset/textBackground.margin_top = 14
 		else:
 			$offset/textBackground.margin_top = 0
-
 		if show:
-			$offset/hideConsole.show()
+			$offset/richTextLabel.margin_top = 17
 		else:
-			$offset/hideConsole.hide()
-		if show:
-			$offset/titleBarBackground.show()
-		else:
-			$offset/titleBarBackground.hide()
+			$offset/richTextLabel.margin_top = 5
+	
 
 func update_docking(dock):
 	if !is_inside_tree():
@@ -207,7 +339,6 @@ func update_docking(dock):
 	#	mdefaultSize = rect_size
 	
 	dockingStation = dock
-	var showTitlebar
 	
 	var rectSize : Vector2
 	rectSize = get_viewport_rect().size
@@ -217,34 +348,32 @@ func update_docking(dock):
 			rect_position = Vector2(0.0, 0.0)
 			rect_size.x = rectSize.x
 			rect_size.y = mdefaultSize.y
-			showTitlebar = false
+			showTitleBar = false
 		"bottom":
 			rect_position = Vector2(0.0, rectSize.y - mdefaultSize.y)
 			rect_size.y = mdefaultSize.y
 			rect_size.x = rectSize.x
-			showTitlebar = false
+			showTitleBar = false
 		"left":
 			rect_position = Vector2(0.0, 0.0)
 			rect_size.x = rectSize.x * 0.5
 			rect_size.y = rectSize.y
-			showTitlebar = false
+			showTitleBar = false
 		"right":
 			rect_position = Vector2(rectSize.x * 0.5,  0.0)
 			rect_size.x = rectSize.x * 0.5
 			rect_size.y = rectSize.y
-			showTitlebar = false
+			showTitleBar = false
 		"full_screen":
 			rect_position = Vector2(0.0, 0.0)
 			rect_size = rectSize
-			showTitlebar = false
+			showTitleBar = false
 		"custom":
 			rect_size = mdefaultSize
-			showTitlebar = true
-			return
 		_:
 			return
-	update_visibility_titlebar(showTitlebar) # it is reachable
-
+	update_visibility_titlebar(showTitleBar) # it is reachable
+	property_list_changed_notify()
 
 func update_button_color(color):
 	buttonColor = color
@@ -265,45 +394,42 @@ func update_line_edit_color(color):
 func update_text_color(selected):
 	if has_node("offset/richTextLabel") and $offset/richTextLabel != null and \
 			has_node("offset/lineEdit") and $offset/lineEdit != null:
-		if typeof(selected) == TYPE_COLOR:
+		if typeof(selected) != TYPE_STRING:
 			textColorSelector = "custom"
+
 			textColor = selected
 		else:
 			textColorSelector = selected
-	
-			match (selected):
-				"black":
-					textColor = Color.black
-				"white":
-					textColor = Color.white
-				"gray":
-					textColor = Color.gray
-				"green":
-					textColor = Color.green
-				"red":
-					textColor = Color.red
-				"yellow":
-					textColor = Color.yellow
-				"blue":
-					textColor = Color.blue
-				"aqua":
-					textColor = Color.aqua
-				_:
-					return
+			textColor = _get_color_by_name(textColorSelector)
+		
 		set_default_text_color(textColor)
 				
 				
 func update_theme(selected):
 	designSelector = selected
-	
+
 	if _customThemes.has(selected):
 		var selectedTheme = _customThemes[selected]
+		dockingStation = selectedTheme["dockingStation"]
+		
+		roundedTitleBar = selectedTheme["roundedTitleBar"]
+		
 		titleBarColor = selectedTheme["titleBarColor"]
 		backgroundColor = selectedTheme["backgroundColor"]
 		lineEditColor = selectedTheme["lineEditColor"]
-		textColor = selectedTheme["textColor"]
+		textColorSelector = selectedTheme["textColor"]
 		buttonColor = selectedTheme["buttonColor"]
-		roundedTitleBar = selectedTheme["roundedTitleBar"]
+		textBackgroundColor = selectedTheme["textBackgroundColor"]
+		
+		showButton = selectedTheme["showButton"]
+		showLine = selectedTheme["showLine"]
+		showTitleBar = selectedTheme["showTitleBar"]
+		showTextBackground = selectedTheme["showTextBackground"]
+		update_hide_scroll_bar(selectedTheme["hideScrollBar"])
+		
+		slideInAnimation = selectedTheme["animation"]
+		
+		update_docking(dockingStation)
 		_update_theme_related_elements()
 	else:
 		print("no such theme " + str(selected))
@@ -323,36 +449,51 @@ func update_corner(rounded : bool):
 		
 
 func _update_theme_related_elements():
-	update_text_color(textColor)
+	update_corner(roundedTitleBar)
+	
+	
 	update_tile_bar_color(titleBarColor)
 	update_background_color(backgroundColor)
 	update_line_edit_color(lineEditColor)
 	update_button_color(buttonColor)
-	update_corner(roundedTitleBar)
-	property_list_changed_notify() # to see the changes in the editor
+	update_text_background_color(textBackgroundColor)
 	
-			
+	
+	update_visibility_button(showButton)
+	update_visibility_line(showLine)
+	update_text_background(showTextBackground)
+	update_slide_in_animation(slideInAnimation)
+	
+	update_visibility_titlebar(showTitleBar)
+	update_text_color(textColorSelector)
+	
+	property_list_changed_notify() # to see the changes in the editor
+
+
 func update_tile_bar_color(color):
 	titleBarColor = color
 	if has_node("offset/titleBarBackground") and $offset/titleBarBackground != null:
 		var newStyle = $offset/titleBarBackground.theme.get("Panel/styles/panel")
 		#$offset/titleBarBackground.color = color
 		newStyle.bg_color = color
-		
-		
+
+
 func update_background_color(color):
 	backgroundColor = color
-	if has_node("offset/textBackground") and $offset/textBackground != null:
+	if has_node("offset/textBackground") and $offset/textBackground != null and \
+			has_node("offset/richTextLabel/background") and $offset/richTextLabel/background != null:
 		$offset/textBackground.color = color
+		$offset/richTextLabel/background.color = color
+		
 	if has_node("offset/buttonBackground") and $offset/buttonBackground != null:
 		$offset/buttonBackground.color = color
 
 
-func update_lineEdit(text : String):
+func update_line_edit(text : String):
 	userMessageSign = text
 	if has_node("offset/lineEdit") and $offset/lineEdit != null:
 		$offset/lineEdit.set_placeholder(text)
-		
+
 
 func update_visibility_button(show):
 	showButton = show
@@ -397,13 +538,17 @@ func _init():
 	basicCommandsSize = commands.size()
 	
 	
-	
 func add_basic_commands():
 	DefaultCommands.new(self)
+	
 
-func send(message : String, clickable = false, sendToConsole = true, flags = 0):
-	append_message(message, clickable, sendToConsole, flags)
-	new_line()
+func send(message : String, userPrefix = false, messageSignPrefix = false, clickable = false, sendToConsole = true, flags = 0):
+	if not addNewLineAfterMsg:
+		new_line()
+
+	append_message(message, userPrefix, messageSignPrefix, clickable, sendToConsole, flags)
+	if addNewLineAfterMsg:
+		new_line()
 
 func _input(event):
 	if event is InputEventKey and event.scancode == toggleConsole and event.is_pressed() and not event.is_echo():
@@ -457,23 +602,26 @@ func _input(event):
 		lineEdit.text = messages[currentIndex]
 
 	if event.is_action_pressed(autoComplete):
-		var closests = get_closest_commands(lineEdit.text)
-		if  closests != null:
-			if closests.size() == 1:
-				lineEdit.text = commandSign + closests[0]
-				lineEdit.set_cursor_position(lineEdit.text.length())
-			elif closests.size() > 1:
-				var tempLine = lineEdit.text
-				new_line()
-				append_message_no_event("possible commands: ")
-				for c in closests:
-					new_line()
-					append_message_no_event(commandSign + c, true)
-					messages.append(commandSign + c)
-				new_line()
-				#send_message_without_event("Press [Up] or [Down] to cycle through available commands.", false)
-				lineEdit.text = tempLine
-				lineEdit.set_cursor_position(lineEdit.text.length())
+		if lineEdit.text.length() > 1:
+			var closests = get_closest_commands(lineEdit.text)
+			if  closests != null:
+				if closests.size() == 1:
+					lineEdit.text = commandSign + closests[0]
+					lineEdit.set_cursor_position(lineEdit.text.length())
+				elif closests.size() > 1:
+					var tempLine = lineEdit.text
+					if not addNewLineAfterMsg and not messages.empty():
+						new_line()
+					append_message_no_event("possible commands: ", false, false)
+					for c in closests:
+						new_line()
+						append_message_no_event(commandSign + c, false, false, true)
+						messages.append(commandSign + c)
+					if addNewLineAfterMsg:
+						new_line()
+					#send_message_without_event("Press [Up] or [Down] to cycle through available commands.", false)
+					lineEdit.text = tempLine
+					lineEdit.set_cursor_position(lineEdit.text.length())
 
 
 func _process(_delta):
@@ -485,16 +633,27 @@ func _process(_delta):
 		lineEdit.set_cursor_position(lineEdit.text.length())
 
 
-func add_theme(themeName : String, \
-			titleBarColor, backgroundColor, lineEditColor, textColor, buttonColor, roundedTitleBar : bool):
-	
+func add_theme(themeName : String, textColor, dockingStation, \
+			showTitleBar, roundedTitleBar, titleBarColor, \
+			backgroundColor, showLine, lineEditColor, showButton, buttonColor, \
+			showTextBackground = false, textBackgroundColor = Color(0.0, 0.0, 0.0, 0.3),\
+			animation = "slide_in_console_2", hideScrollBar = false):
+				
 	_customThemes[themeName] = {
+		"dockingStation" : dockingStation,
+		"showButton" : showButton,
+		"showLine" : showLine,
+		"showTitleBar" : showTitleBar,
+		"showTextBackground" : showTextBackground,
 		"titleBarColor" : titleBarColor,
+		"roundedTitleBar" : roundedTitleBar,
 		"backgroundColor" : backgroundColor,
 		"lineEditColor" : lineEditColor,
-		"textColor" : textColor,
 		"buttonColor" : buttonColor,
-		"roundedTitleBar" : roundedTitleBar
+		"textBackgroundColor" : textBackgroundColor,
+		"textColor" : textColor,
+		"animation" : animation,
+		"hideScrollBar" : hideScrollBar
 	}
 
 
@@ -532,6 +691,14 @@ func grab_line_focus() -> void:
 func add_command(command : Command) -> void:
 	commands.append(command)
 	
+
+func get_all_commands() -> Array:
+	var names = []
+	for i in range(commands.size()):
+		names.append(commands[i].get_name())
+	
+	return names
+	
 	
 func remove_command_by_name(commandName : String) -> bool:
 	for i in range(commands.size()):
@@ -542,7 +709,7 @@ func remove_command_by_name(commandName : String) -> bool:
 	
 	
 func new_line():
-	append_message_no_event("\n", false)
+	append_message_no_event("\n", false, false)
 	
 	
 func clear_flags():
@@ -580,21 +747,28 @@ func append_flags(flags : int):
 		_antiFlags = _antiFlags.insert(0, "[/url]")
 
 
-func write(message : String, clickable = false, sendToConsole = true, flags = 0):
-	append_message(message, clickable, sendToConsole, flags)
+func write(message : String, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
+	append_message(message, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
 	
 	
-func write_line(message : String, clickable = false, sendToConsole = true, flags = 0):
-	append_message(message, clickable, sendToConsole, flags)
-	new_line()
+func write_line(message : String, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
+	if not addNewLineAfterMsg:
+		new_line()
+	append_message(message, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
+	if addNewLineAfterMsg:
+		new_line()
  
 
-func send_message(message : String, clickable = false, sendToConsole = true, flags = 0):
-	append_message(message, clickable, sendToConsole, flags)
-	new_line()
+func send_message(message : String, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
+	if not addNewLineAfterMsg:
+		new_line()
+	append_message(message, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
+	if addNewLineAfterMsg:
+		new_line()
 
 
-func append_message_no_event(message : String,  clickableMeta = false, sendToConsole = true, flags = 0):
+func append_message_no_event(message : String, \
+								userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
 	if message.empty():
 		return
 
@@ -612,6 +786,12 @@ func append_message_no_event(message : String,  clickableMeta = false, sendToCon
 	
 	
 	if sendToConsole:
+		if sendUserName and userPrefix:
+			message = "[color="+userNameColorName+"]" + "[b]" + userName + "[/b][/color]" + ": " + message
+		if sendMessageSign and messageSignPrefix:
+			message = userMessageSign + " " + message
+			
+		
 		textLabel.append_bbcode(message) # actual message
 		if logEnabled:
 			add_to_log(message)
@@ -625,15 +805,16 @@ func append_message_no_event(message : String,  clickableMeta = false, sendToCon
 	clear_flags()
 	
 
-func append_message(message : String, clickableMeta = false, sendToConsole = true, flags = 0): 
+func append_message(message : String, \
+						userPrefix = false, messageSignPrefix = false, clickableMeta = false, sendToConsole = true, flags = 0): 
 	if message.empty():
 		return
-	
+		
 	# let the message be switched through
 	messages.append(message)
 	currentIndex = -1
 	
-	append_message_no_event(message, clickableMeta, sendToConsole, flags)
+	append_message_no_event(message, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
 
 	if message[0] == commandSign: # check if the input is a command
 		execute_command(message)
@@ -648,19 +829,23 @@ func execute_command(message : String):
 		# return the command and the whole message
 		var cmd = get_command(currentCommand)
 		if cmd == null:
-			new_line()
-			append_message_no_event(COMMAND_NOT_FOUND_MSG)
-			new_line()
+			if not addNewLineAfterMsg:
+				new_line()
+			append_message_no_event(COMMAND_NOT_FOUND_MSG, false, false)
+			if addNewLineAfterMsg:
+				new_line()
 			return
 			
 		var found = false
 		for i in range(commands.size()):
 			if commands[i].get_name() == cmd.get_name(): # found command
 				found = true
-				if not cmd.get_call_rights().are_rights_sufficient(user.get_rights()):
-					new_line()
-					append_message_no_event("Not sufficient rights as %s." % ConsoleRights.get_rights_name(user.get_rights()))
-					new_line()
+				if not cmd.are_rights_sufficient(user.get_rights()):
+					if not addNewLineAfterMsg:
+						new_line()
+					append_message_no_event("Not sufficient rights as %s." % ConsoleRights.get_rights_name(user.get_rights()), false, false)
+					if addNewLineAfterMsg:
+						new_line()
 					break
 				
 				
@@ -672,12 +857,13 @@ func execute_command(message : String):
 					break
 					
 				if not args.size() in cmd.get_ref().get_expected_arguments():
-					new_line()
-					append_message_no_event("expected: ")
+					if not addNewLineAfterMsg:
+						new_line()
+					append_message_no_event("expected: ", false, false)
 					_print_args(i)
-					append_message_no_event(" arguments!")
+					append_message_no_event(" arguments!", false, false)
 					
-					if addNewLineAfterCommand:
+					if addNewLineAfterMsg:
 						new_line()
 				else:
 					cmd.apply(_extract_arguments(currentCommand))
@@ -685,13 +871,17 @@ func execute_command(message : String):
 				emit_signal("on_command_sent", cmd, currentCommand)
 				break
 		if not found:
-			new_line()
-			append_message_no_event(COMMAND_NOT_FOUND_MSG)
-			new_line()
+			if not addNewLineAfterMsg:
+				new_line()
+			append_message_no_event(COMMAND_NOT_FOUND_MSG, false, false)
+			if addNewLineAfterMsg:
+				new_line()
 	else:
-		new_line()
-		append_message_no_event(COMMAND_NOT_FOUND_MSG)
-		new_line()
+		if not addNewLineAfterMsg:
+			new_line()
+		append_message_no_event(COMMAND_NOT_FOUND_MSG, false, false)
+		if addNewLineAfterMsg:
+			new_line()
 
 
 # check first for real command
@@ -759,9 +949,12 @@ func _on_send_pressed():
 	
 
 func send_line():
-	append_message(lineEdit.text)
+	if not addNewLineAfterMsg and not messages.empty():
+		new_line()
+	append_message(lineEdit.text, true, true)
 	lineEdit.text = ""
-	new_line()
+	if addNewLineAfterMsg:
+		new_line()
 	
 
 func _on_richTextLabel_meta_clicked(meta):
@@ -840,13 +1033,13 @@ func _print_args(commandIndex : int):
 	if commands[i].get_expected_args().size() > 1:
 		for arg in range(commands[i].get_expected_args().size()):
 			if (commands[i].get_expected_args()[arg] == VARIADIC_COMMANDS):
-				append_message_no_event("variadic")
+				append_message_no_event("variadic", false, false)
 			else:
-				append_message_no_event(str(commands[i].get_expected_args()[arg]))
+				append_message_no_event(str(commands[i].get_expected_args()[arg]), false, false)
 			if arg == commands[i].get_expected_args().size() - 2:
-				append_message_no_event(" or ")
+				append_message_no_event(" or ", false, false)
 				if (commands[i].get_expected_args()[arg+1] == VARIADIC_COMMANDS):
-					append_message_no_event("variadic")
+					append_message_no_event("variadic", false, false)
 				else:
 					append_message_no_event(str(commands[i].get_expected_args()[arg+1]))
 				break
@@ -855,8 +1048,41 @@ func _print_args(commandIndex : int):
 	
 	elif commands[i].get_expected_args().size() == 1: 
 		if commands[i].get_expected_args()[0] == VARIADIC_COMMANDS:
-			append_message_no_event("variadic")
+			append_message_no_event("variadic", false, false)
 		else:
-			append_message_no_event("1")
+			append_message_no_event("1", false, false)
 	else:
-		append_message_no_event("0")
+		append_message_no_event("0", false, false)
+
+
+func _get_color_by_name(colorName : String) -> Color:
+	match (colorName):
+		"aqua":
+			return Color.aqua
+		"black":
+			return Color.black
+		"blue":
+			return Color.blue
+		"fuchsia":
+			return Color.fuchsia
+		"gray":
+			return Color.gray
+		"green":
+			return Color.green
+		"maroon":
+			return Color.maroon
+		"purple":
+			return Color.purple
+		"red":
+			return Color.red
+		"silver":
+			return Color.silver
+		"teal":
+			return Color.teal
+		"white":
+			return Color.white
+		"yellow":
+			return Color.yellow
+		_:
+			print("couldn't find color %s!" % colorName)
+			return Color.pink
