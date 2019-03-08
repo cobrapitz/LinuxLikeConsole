@@ -7,9 +7,15 @@
 
 ###### toggle with: key above tab
 
-[click for more pictures](https://github.com/cobrapitz/LinuxLikeConsole/wiki/Showcase)
+***
+
+## [Showcase](https://github.com/cobrapitz/LinuxLikeConsole/wiki/Showcase)
+
+***
 
 ## ![Wiki](https://github.com/cobrapitz/LinuxLikeConsole/wiki)
+
+***
 
 ## Features:
 * [x] auto completion / suggestion
