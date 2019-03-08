@@ -34,7 +34,7 @@
 * [x] user mode (commands have priviliges) (v1.1)
 
 ***
-Fully customizeable
+### Fully customizeable
 
 ![functions](https://github.com/cobrapitz/LinuxLikeConsole/blob/master/showcase/console10.PNG)
 
