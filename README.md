@@ -34,6 +34,14 @@
 * [x] user mode (commands have priviliges) (v1.1)
 
 ***
+### Coming in 2.1.0:
+- Fixes for global usage
+- Logging
+- Additional logging functions (warn, error) that send messages in red/yellow
+- Chat
+
+
+***
 ### Fully customizeable
 
 ![functions](https://github.com/cobrapitz/LinuxLikeConsole/blob/master/showcase/console10.PNG)
@@ -49,49 +57,20 @@
 
 ##### [Short Version](https://github.com/cobrapitz/LinuxLikeConsole/wiki/Examples#1-how-to-add-custom-command-1)
 ```gdscript
+#short version
+
 const CommandRef = preload("res://console/command_ref.gd")
 const Console = preload("res://console/console.tscn")
 
-onready var testConsole = $console
+onready var console = $console
 
 
 func _ready():
-    # CommandRef: 
-    # @param1: object, that owns the reference (function)
-    # @param2: method name
-    # @param3: type (FUNC or VAR)
-    # @param4: expected amount of parameters
     var printRef = CommandRef.new(self, "my_print", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
- 
-    # CommandRef: 
-    # @param1: how to call the name in the console (here: /test_print)
-    # @param2: CommandRef you created before
-    # @param3: predefined parameters
-    # @param4: description, can be shown by /help or /man <command>
-    var printCommand = Command.new('test_print', printRef, [], \
-    		'Custom print.', ConsoleRights.CallRights.USER)
-    testConsole.add_command(printCommand)
+    var printCommand = Command.new('test_print', printRef, [], 'Custom print.', ConsoleRights.CallRights.USER)
+    console.add_command(printCommand)
 
-    # more practical example 
-    # note: number of args can vary
-    var bgColorRef = CommandRef.new(self, "change_background_color", CommandRef.COMMAND_REF_TYPE.FUNC, [3,4])
-    var bgColorCommand = Command.new('changeBackgroundColor', bgColorRef, [], \
-    		'Changes the color of the background.', ConsoleRights.CallRights.USER)
-    testConsole.add_command(bgColorCommand)
-
-# called with: /test_print hello
-# result: "This is my first message: hello" (in godot console)
+    
 func my_print(input : Array):
     print("This is my first message: %s" % input[0]) 
-	
-# called with: /changeBackgroundColor 0 1 0 1 
-# OR with: /changeBackgroundColor 0 1 0
-# result: changed background color of ColorRect to green -> Color(0, 1, 0, 1)
-func change_background_color(input : Array):
-    var bg = get_node(background) as ColorRect
-    var c = input # color c
-    if c.size() == 3: 
-        bg.set_frame_color(Color(c[0], c[1], c[2], 1))
-    else: # 4
-        bg.set_frame_color(Color(c[0], c[1], c[2], c[3]))
 ```
