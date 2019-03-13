@@ -33,13 +33,20 @@ var _flags : String
 var _antiFlags : String # flagendings 
 
 const COMMAND_NOT_FOUND_MSG := "[color=red]Command not found![/color]"
+const WARN_MSG := "[color=yellow]%s[/color]"
+const WARN_MSG_PREFIX := " [WARNING] "
+const ERROR_MSG := "[color=red]%s[/color]"
+const ERROR_MSG_PREFIX := " [ERROR] "
+const SUCCESSFUL_MSG := "[color=green]%s[/color]"
+const SUCCESSFUL_MSG_PREFIX := " [SUCCESS] "
+
 
 
 #var logFile = preload("res://Log.gd").new()
 
-onready var lineEdit = $offset/lineEdit
-onready var textLabel = $offset/richTextLabel
-onready var animation = $offset/animation
+#onready var lineEdit = $offset/lineEdit
+#onready var textLabel = $offset/richTextLabel
+#onready var animation = $offset/animation
 
 var allText = ""
 #var messageHistory := ""
@@ -65,7 +72,11 @@ var _setCaretPosToLast = false
 
 const toggleConsole := KEY_QUOTELEFT
 
-
+var logFile := File.new()
+var logFileCreated = false
+var logFileName = "res://logs/consolelog.txt"
+var _disableNextLog = false  
+var _logPrefix = "" # used for warning/error/succes message
 
 # export vars
 export(String) var userName = "dev" setget update_user_name
@@ -91,11 +102,13 @@ var textColorSelector = "white" setget update_text_color
 
 export(bool) var enableWindowDrag = true 
 export(bool) var logEnabled = false 
+export(float) var logInterval = 300.0 setget update_log_timer
 export(String) var userMessageSign = ">" setget update_line_edit
 export(String) var commandSign := "/"
 export(bool) var sendMessageSign = true setget update_send_message_sign
 export(bool) var sendUserName = false setget update_send_user_name
-export(bool) var addNewLineAfterMsg = false 
+#export(bool) var addNewLineAfterMsg = false 
+var addNewLineAfterMsg = false 
 export(bool) var hideScrollBar = false setget update_hide_scroll_bar
 #export(String) var next_message_history = "ui_down"
 export(String, "slide_in_console", "slide_in_console_2", "none") var slideInAnimation = "slide_in_console" setget update_slide_in_animation 
@@ -257,6 +270,12 @@ var _customThemes : Dictionary = {
 
 # export vars setget funcs
 
+func update_log_timer(time):
+	if has_node("logTimer") and $logTimer != null:
+		logInterval = time
+		$logTimer.wait_time = time
+
+
 func update_hide_scroll_bar(hide):
 	hideScrollBar = hide
 	if has_node("offset/richTextLabel") and $offset/richTextLabel != null:
@@ -267,7 +286,6 @@ func update_hide_scroll_bar(hide):
 func update_user_name_color(colorName):
 	userNameColorName = colorName
 	userNameColor = _get_color_by_name(userNameColorName)
-	
 	
 
 func update_send_message_sign(send):
@@ -528,25 +546,43 @@ func update_visibility_line(show):
 	if has_node("offset/lineEditBackground") and $offset/lineEditBackground != null:
 		$offset/lineEditBackground.set_visible(show)
 
-			
 
-func _init():
+func _ready():
 	set_process_input(true)
 	
 	user = ConsoleUser.new(userName)
 	add_basic_commands()
 	basicCommandsSize = commands.size()
+	create_log_file(logFileName)
+
+
+func _notification(what):
+	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
+		if logEnabled:
+			_on_logTimer_timeout()
+		
+
+
+func create_log_file(filePath):
+	if logEnabled:
+		var dir = Directory.new()
+		if not dir.file_exists(filePath):
+			print("fikle does not exists to save log file!")
+		logFile = File.new()
+		logFile.open(filePath, logFile.WRITE_READ)
+		logFileCreated = true
+		logFile.close()
 	
 	
 func add_basic_commands():
-	DefaultCommands.new(self)
+	DefaultCommands.new(self) # adds default commands
 	
 
-func send(message : String, userPrefix = false, messageSignPrefix = false, clickable = false, sendToConsole = true, flags = 0):
+func send(message : String, addToLog = true, userPrefix = false, messageSignPrefix = false, clickable = false, sendToConsole = true, flags = 0):
 	if not addNewLineAfterMsg:
 		new_line()
 
-	append_message(message, userPrefix, messageSignPrefix, clickable, sendToConsole, flags)
+	append_message(message, addToLog, userPrefix, messageSignPrefix, clickable, sendToConsole, flags)
 	if addNewLineAfterMsg:
 		new_line()
 
@@ -554,26 +590,16 @@ func _input(event):
 	if event is InputEventKey and event.scancode == toggleConsole and event.is_pressed() and not event.is_echo():
 		toggle_console()
 		
-	# left or right mouse button pressed
-	# test if really needed
-	if event is InputEventMouseButton:
-		if event.button_index == BUTTON_LEFT or event.button_index == BUTTON_RIGHT:
-			if event.position.x < get_position().x or event.position.y < get_position().y \
-					or event.position.x > get_position().x + get_size().x or event.position.y > get_position().y + get_size().y:
-				lineEdit.focus_mode = FOCUS_NONE
-			else:
-				lineEdit.focus_mode = FOCUS_CLICK
-	
 	if event is InputEventKey:
 		if event.is_pressed() and not event.is_echo():
 			if event.scancode == KEY_ENTER:
-				if not lineEdit.text.empty():
+				if not $offset/lineEdit.text.empty():
 					send_line()
 			if event.scancode == KEY_ESCAPE:
-				lineEdit.text = ""
+				$offset/lineEdit.text = ""
 			if event.scancode == KEY_CONTROL:
 				_ctrlPressed = true		
-			if event.scancode == KEY_LEFT and not _ctrlPressed and lineEdit.get_cursor_position() == 0:
+			if event.scancode == KEY_LEFT and not _ctrlPressed and $offset/lineEdit.get_cursor_position() == 0:
 				_setCaretPosToLast = true
 		else:
 			if event.scancode == KEY_CONTROL:
@@ -587,9 +613,9 @@ func _input(event):
 			currentIndex = messages.size() - 1
 		elif currentIndex > messages.size() - 1:
 			currentIndex = 0
-		lineEdit.text = messages[currentIndex]
+		$offset/lineEdit.text = messages[currentIndex]
 		grab_line_focus()
-		lineEdit.set_cursor_position(lineEdit.text.length())
+		$offset/lineEdit.set_cursor_position($offset/lineEdit.text.length())
 		
 	elif event.is_action_pressed(next_message_history):
 		if messages.empty():
@@ -599,29 +625,29 @@ func _input(event):
 			currentIndex = 0
 		elif currentIndex > messages.size() - 1:
 			currentIndex = 0
-		lineEdit.text = messages[currentIndex]
+		$offset/lineEdit.text = messages[currentIndex]
 
 	if event.is_action_pressed(autoComplete):
-		if lineEdit.text.length() > 1:
-			var closests = get_closest_commands(lineEdit.text)
+		if $offset/lineEdit.text.length() > 1:
+			var closests = get_closest_commands($offset/lineEdit.text)
 			if  closests != null:
 				if closests.size() == 1:
-					lineEdit.text = commandSign + closests[0]
-					lineEdit.set_cursor_position(lineEdit.text.length())
+					$offset/lineEdit.text = commandSign + closests[0]
+					$offset/lineEdit.set_cursor_position($offset/lineEdit.text.length())
 				elif closests.size() > 1:
-					var tempLine = lineEdit.text
+					var tempLine = $offset/lineEdit.text
 					if not addNewLineAfterMsg and not messages.empty():
 						new_line()
-					append_message_no_event("possible commands: ", false, false)
+					append_message_no_event("possible commands: ", false)
 					for c in closests:
 						new_line()
-						append_message_no_event(commandSign + c, false, false, true)
+						append_message_no_event(commandSign + c, false, false, false, true)
 						messages.append(commandSign + c)
 					if addNewLineAfterMsg:
 						new_line()
 					#send_message_without_event("Press [Up] or [Down] to cycle through available commands.", false)
-					lineEdit.text = tempLine
-					lineEdit.set_cursor_position(lineEdit.text.length())
+					$offset/lineEdit.text = tempLine
+					$offset/lineEdit.set_cursor_position($offset/lineEdit.text.length())
 
 
 func _process(_delta):
@@ -630,7 +656,7 @@ func _process(_delta):
 	
 	if _setCaretPosToLast:
 		_setCaretPosToLast = false
-		lineEdit.set_cursor_position(lineEdit.text.length())
+		$offset/lineEdit.set_cursor_position($offset/lineEdit.text.length())
 
 
 func add_theme(themeName : String, textColor, dockingStation, \
@@ -667,9 +693,9 @@ func toggle_console() -> void:
 		hide()
 	else:
 		show()
-		animation.playback_speed = 1.0
+		$offset/animation.playback_speed = 1.0
 		play_animation()
-		lineEdit.grab_focus()
+		$offset/lineEdit.grab_focus()
 		
 	isShown = !isShown
 
@@ -680,12 +706,12 @@ func get_last_message() -> String:
 
 func play_animation() -> void:
 	if slideInAnimation != "none":
-		animation.play(slideInAnimation)
+		$offset/animation.play(slideInAnimation)
 	
 
 func grab_line_focus() -> void:
-	lineEdit.focus_mode = Control.FOCUS_ALL
-	lineEdit.grab_focus()
+	$offset/lineEdit.focus_mode = Control.FOCUS_ALL
+	$offset/lineEdit.grab_focus()
 	
 	
 func add_command(command : Command) -> void:
@@ -709,7 +735,7 @@ func remove_command_by_name(commandName : String) -> bool:
 	
 	
 func new_line():
-	append_message_no_event("\n", false, false)
+	append_message_no_event("\n", false)
 	
 	
 func clear_flags():
@@ -747,28 +773,55 @@ func append_flags(flags : int):
 		_antiFlags = _antiFlags.insert(0, "[/url]")
 
 
-func write(message : String, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
-	append_message(message, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
+func write(message : String, addToLog = true, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
+	append_message(message, addToLog, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
 	
 	
-func write_line(message : String, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
+func write_line(message : String, addToLog = true, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
 	if not addNewLineAfterMsg:
 		new_line()
-	append_message(message, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
+	append_message(message, addToLog, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
 	if addNewLineAfterMsg:
 		new_line()
  
 
-func send_message(message : String, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
+func warn(message, addToLog = true):
 	if not addNewLineAfterMsg:
 		new_line()
-	append_message(message, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
+	_logPrefix = WARN_MSG_PREFIX
+	append_message(WARN_MSG % message, addToLog)
+	if addNewLineAfterMsg:
+		new_line()
+		
+		
+func error(message, addToLog = true):
+	if not addNewLineAfterMsg:
+		new_line()
+	_logPrefix = ERROR_MSG_PREFIX
+	append_message(ERROR_MSG % message, addToLog)
+	if addNewLineAfterMsg:
+		new_line()
+		
+		
+func success(message, addToLog = true):
+	if not addNewLineAfterMsg:
+		new_line()
+	_logPrefix = SUCCESSFUL_MSG_PREFIX
+	append_message(SUCCESSFUL_MSG % message, addToLog)
+	if addNewLineAfterMsg:
+		new_line()
+
+
+func send_message(message : String, addToLog = true, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
+	if not addNewLineAfterMsg:
+		new_line()
+	append_message(message, userPrefix, addToLog, messageSignPrefix, clickableMeta, sendToConsole, flags)
 	if addNewLineAfterMsg:
 		new_line()
 
 
 func append_message_no_event(message : String, \
-								userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
+							addToLog = true, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
 	if message.empty():
 		return
 
@@ -779,11 +832,11 @@ func append_message_no_event(message : String, \
 		return
 	
 	if clickableMeta:
-		textLabel.push_meta(message) # meta click, writes meta to console
+		$offset/richTextLabel.push_meta(message) # meta click, writes meta to console
 		
 	if _flags.length() > 0:
-		textLabel.append_bbcode(_flags) # bbcode
-	
+		$offset/richTextLabel.append_bbcode(_flags) # bbcode
+	 
 	
 	if sendToConsole:
 		if sendUserName and userPrefix:
@@ -792,21 +845,23 @@ func append_message_no_event(message : String, \
 			message = userMessageSign + " " + message
 			
 		
-		textLabel.append_bbcode(message) # actual message
-		if logEnabled:
+		$offset/richTextLabel.append_bbcode(message) # actual message
+		if logEnabled and not _disableNextLog and addToLog:
 			add_to_log(message)
+		else:
+			_disableNextLog = false
 	
 	if clickableMeta:
-		textLabel.pop()
+		$offset/richTextLabel.pop()
 		
 	if _flags.length() > 0:
-		textLabel.append_bbcode(_antiFlags)
+		$offset/richTextLabel.append_bbcode(_antiFlags)
 		
 	clear_flags()
 	
 
 func append_message(message : String, \
-						userPrefix = false, messageSignPrefix = false, clickableMeta = false, sendToConsole = true, flags = 0): 
+						addToLog = true, userPrefix = false, messageSignPrefix = false, clickableMeta = false, sendToConsole = true, flags = 0): 
 	if message.empty():
 		return
 		
@@ -814,12 +869,12 @@ func append_message(message : String, \
 	messages.append(message)
 	currentIndex = -1
 	
-	append_message_no_event(message, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
+	append_message_no_event(message, addToLog, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
 
 	if message[0] == commandSign: # check if the input is a command
 		execute_command(message)
 
-	emit_signal("on_message_sent", lineEdit.text)	
+	emit_signal("on_message_sent", $offset/lineEdit.text)	
 	
 
 func execute_command(message : String):
@@ -831,7 +886,7 @@ func execute_command(message : String):
 		if cmd == null:
 			if not addNewLineAfterMsg:
 				new_line()
-			append_message_no_event(COMMAND_NOT_FOUND_MSG, false, false)
+			append_message_no_event(COMMAND_NOT_FOUND_MSG, false)
 			if addNewLineAfterMsg:
 				new_line()
 			return
@@ -843,7 +898,7 @@ func execute_command(message : String):
 				if not cmd.are_rights_sufficient(user.get_rights()):
 					if not addNewLineAfterMsg:
 						new_line()
-					append_message_no_event("Not sufficient rights as %s." % ConsoleRights.get_rights_name(user.get_rights()), false, false)
+					append_message_no_event("Not sufficient rights as %s." % ConsoleRights.get_rights_name(user.get_rights()), false)
 					if addNewLineAfterMsg:
 						new_line()
 					break
@@ -859,9 +914,9 @@ func execute_command(message : String):
 				if not args.size() in cmd.get_ref().get_expected_arguments():
 					if not addNewLineAfterMsg:
 						new_line()
-					append_message_no_event("expected: ", false, false)
+					append_message_no_event("expected: ", false)
 					_print_args(i)
-					append_message_no_event(" arguments!", false, false)
+					append_message_no_event(" arguments!", false)
 					
 					if addNewLineAfterMsg:
 						new_line()
@@ -879,7 +934,7 @@ func execute_command(message : String):
 	else:
 		if not addNewLineAfterMsg:
 			new_line()
-		append_message_no_event(COMMAND_NOT_FOUND_MSG, false, false)
+		append_message_no_event(COMMAND_NOT_FOUND_MSG, false, false, false)
 		if addNewLineAfterMsg:
 			new_line()
 
@@ -943,24 +998,25 @@ func _extract_arguments(commandPostFix : String) -> Array:
 
 
 func _on_send_pressed():
-	if not lineEdit.text.empty():
+	if not $offset/lineEdit.text.empty():
 		send_line()
-	lineEdit.grab_focus()
+	$offset/lineEdit.grab_focus()
 	
 
 func send_line():
 	if not addNewLineAfterMsg and not messages.empty():
 		new_line()
-	append_message(lineEdit.text, true, true)
-	lineEdit.text = ""
+	append_message($offset/lineEdit.text, true, true, true)
+	$offset/lineEdit.text = ""
 	if addNewLineAfterMsg:
 		new_line()
 	
 
 func _on_richTextLabel_meta_clicked(meta):
-	lineEdit.text = meta.substr(0, meta.length())
-	lineEdit.set_cursor_position(lineEdit.get_text().length())
-	lineEdit.grab_focus()
+	print("clicked")
+	$offset/lineEdit.text = meta.substr(0, meta.length())
+	$offset/lineEdit.set_cursor_position($offset/lineEdit.get_text().length())
+	$offset/lineEdit.grab_focus()
 
 
 func _on_titleBar_gui_input(event):
@@ -975,7 +1031,7 @@ func _on_titleBar_gui_input(event):
 	
 
 func _on_animation_animation_started():
-	lineEdit.clear()
+	$offset/lineEdit.clear()
  
 
 func _on_hideConsole_button_up():
@@ -985,7 +1041,6 @@ func _on_hideConsole_button_up():
 
 
 func _on_console_resized():
-
 	if dockingStation != "custom":
 		match (dockingStation):
 			"top":
@@ -1004,27 +1059,22 @@ func _on_console_resized():
 		
 
 func add_to_log(message : String):
-	allText += message
-	var dir = Directory.new()
-	if not dir.dir_exists("res://logs"):
-		dir.make_dir("res://logs")
-	var file = File.new()
-	file.open("res://logs/consolelog.txt", file.READ_WRITE)
-	file.seek_end()
-	file.store_string(message)
-	file.close()
-
-
-func save_log_to_file(path : String):
-	var fileName = path
+	if not logFileCreated:
+		return	
+	var dateDict = OS.get_datetime()
+	var day = dateDict.day
+	var month = dateDict.month
+	var year = dateDict.year
+	var dateTime = "[" + str(day) + "/" + str(month) + "/" + str(year) + "] "
 	
-	var dir = Directory.new()
-	if not dir.dir_exists(fileName):
-		print("dir does not exists to save log file!")
-	var file = File.new()
-	file.open(fileName, file.WRITE_READ)
-	file.store_string(allText)
-	file.close()
+	var timeDict = OS.get_time()
+	var hour = timeDict.hour
+	var minute = timeDict.minute
+	var seconds = timeDict.second
+	var time = "[" + str(hour) + ":" + str(minute) + ":" + str(seconds) + "] "
+
+	allText += dateTime + time + _logPrefix + message + "\n"
+	_logPrefix = ""
 	
 
 # Array printer
@@ -1033,26 +1083,26 @@ func _print_args(commandIndex : int):
 	if commands[i].get_expected_args().size() > 1:
 		for arg in range(commands[i].get_expected_args().size()):
 			if (commands[i].get_expected_args()[arg] == VARIADIC_COMMANDS):
-				append_message_no_event("variadic", false, false)
+				append_message_no_event("variadic", false)
 			else:
-				append_message_no_event(str(commands[i].get_expected_args()[arg]), false, false)
+				append_message_no_event(str(commands[i].get_expected_args()[arg]), false)
 			if arg == commands[i].get_expected_args().size() - 2:
-				append_message_no_event(" or ", false, false)
+				append_message_no_event(" or ", false)
 				if (commands[i].get_expected_args()[arg+1] == VARIADIC_COMMANDS):
-					append_message_no_event("variadic", false, false)
+					append_message_no_event("variadic", false)
 				else:
-					append_message_no_event(str(commands[i].get_expected_args()[arg+1]))
+					append_message_no_event(str(commands[i].get_expected_args()[arg+1]), false)
 				break
 			else:
-				append_message_no_event(", ")
+				append_message_no_event(", ", false)
 	
 	elif commands[i].get_expected_args().size() == 1: 
 		if commands[i].get_expected_args()[0] == VARIADIC_COMMANDS:
-			append_message_no_event("variadic", false, false)
+			append_message_no_event("variadic", false)
 		else:
-			append_message_no_event("1", false, false)
+			append_message_no_event("1", false)
 	else:
-		append_message_no_event("0", false, false)
+		append_message_no_event("0", false)
 
 
 func _get_color_by_name(colorName : String) -> Color:
@@ -1086,3 +1136,21 @@ func _get_color_by_name(colorName : String) -> Color:
 		_:
 			print("couldn't find color %s!" % colorName)
 			return Color.pink
+
+
+
+func _on_logTimer_timeout():
+	logFile.open(logFileName, logFile.READ_WRITE)
+	logFile.seek_end()
+	logFile.store_string(allText)
+	logFile.close()
+	allText = ""
+	
+	
+	
+	
+	
+	
+	
+	
+	
