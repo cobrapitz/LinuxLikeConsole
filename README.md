@@ -29,7 +29,7 @@
 * [x] slide in animation
 * [x] predefined and runtime forwarded parameters (runtime forwarding is prioritized)
 * [x] easy BBcode support (like: [b]this is bold[/b])
-* [x] ~~ (simple) ~~  logging (improved in v2.1)
+* [x] ~~(simple)~~  logging (improved in v2.1)
 * [x] custom/built in themes (arch theme, ubuntu theme, windows, light, dark, **new** text_only (in v2.0))
 * [x] user mode (commands have priviliges) (v1.1)
 * [x] Additional Logging functions (warn, error, sucess ) (v2.1)
