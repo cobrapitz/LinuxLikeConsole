@@ -4,7 +4,7 @@ class_name CommandRef
 
 enum COMMAND_REF_TYPE {
 	FUNC,
-	VAR #,
+	VAR #, not used currently
 	#USTOM
 }
 
@@ -13,7 +13,7 @@ var _type # what is the ref (func or var)
 var _obj # refers to the owner of the variable/function
 var _argsExpected # arguments for the function
 
-func _init(obj, ref : String, type, argsExpected):
+func _init(obj, ref : String, argsExpected, type = COMMAND_REF_TYPE.FUNC):
 	_obj = obj
 	_ref = ref
 	_type = type
