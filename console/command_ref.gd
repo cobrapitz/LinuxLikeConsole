@@ -1,5 +1,3 @@
-extends Node
-
 class_name CommandRef 
 
 enum COMMAND_REF_TYPE {

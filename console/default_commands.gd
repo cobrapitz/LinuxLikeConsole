@@ -1,5 +1,3 @@
-extends Node
-
 class_name DefaultCommands
 
 var _firstHelp := true
