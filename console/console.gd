@@ -1,9 +1,7 @@
 """
 - contains a list of commands (Commands.gd)
 """
-tool
 extends Control
-
 class_name Console
 
 # signals
@@ -299,7 +297,7 @@ func create_log_file(filePath):
 	
 	
 func add_basic_commands():
-	var d = DefaultCommands.new(self) # adds default commands
+	DefaultCommands.new(self) # adds default commands
 
 func send(message : String, addToLog = true, userPrefix = false, messageSignPrefix = false, clickable = false, sendToConsole = true, flags = 0):
 	if not addNewLineAfterMsg:
