@@ -1,4 +1,4 @@
-# LinuxLikeConsole ([v2.1.1](https://github.com/cobrapitz/LinuxLikeConsole/tree/v2.1.1))
+# LinuxLikeConsole ([v2.1.2](https://github.com/cobrapitz/LinuxLikeConsole/tree/v2.1.2))
 ### Linux Like Console written in gdscript for Godot (Game Engine)
 ###### For additional features or problems just write an issue, write an email or Discord cobrapitz#2872
 
