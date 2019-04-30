@@ -60,7 +60,7 @@ var mdefaultSize := Vector2(550.0, 275.0)
 var commands := []
 var basicCommandsSize := 0
 
-var user := ConsoleUser.new("user") 
+var user : ConsoleUser
 
 const VARIADIC_COMMANDS = 65535 # amount of parameters
 
@@ -268,306 +268,30 @@ var _customThemes : Dictionary = {
 	}
 }
 
-# export vars setget funcs
-
-func update_log_timer(time):
-	if has_node("logTimer") and $logTimer != null:
-		logInterval = time
-		$logTimer.wait_time = time
-
-
-func update_hide_scroll_bar(hide):
-	hideScrollBar = hide
-	if has_node("offset/richTextLabel") and $offset/richTextLabel != null:
-		$offset/richTextLabel.scroll_active = not hide
-	property_list_changed_notify()
-
-
-func update_user_name_color(colorName):
-	userNameColorName = colorName
-	userNameColor = _get_color_by_name(userNameColorName)
-	
-
-func update_send_message_sign(send):
-	sendMessageSign = send
-
-
-func update_send_user_name(send):
-	sendUserName = send
-
-
-func update_text_background_color(color):
-	textBackgroundColor = color 
-	
-	if has_node("offset/richTextLabel/background") and $offset/richTextLabel/background != null:
-		$offset/richTextLabel/background.color = color
-
-
-func update_text_background(show):
-	showTextBackground = show
-	
-	if has_node("offset/richTextLabel/background") and $offset/richTextLabel/background != null:
-		$offset/richTextLabel/background.set_visible(show)
-	
-
-
-func update_slide_in_animation(anim):
-	slideInAnimation = anim
-	
-
-
-func update_user_name(uName : String):
-	userName = uName
-	user.set_name(userName)
-
-
-func update_user_rights(rightsName : String):
-	userRights = rightsName
-	user.set_rights(ConsoleRights.get_rights_by_name(rightsName))
-
-	update_user_name_color(ConsoleRights.get_rights_color(ConsoleRights.get_rights_by_name(userRights)))
-	property_list_changed_notify()
-	
-
-func update_visibility_titlebar(show):
-	showTitleBar = show
-	if has_node("offset/titleBar") and $offset/titleBar != null and \
-			has_node("offset/hideConsole") and $offset/hideConsole != null and \
-			has_node("offset/titleBarBackground") and $offset/titleBarBackground != null and \
-			has_node("offset/richTextLabel") and $offset/richTextLabel != null:
-		
-		$offset/titleBar.set_visible(show)
-		$offset/hideConsole.set_visible(show)
-		$offset/titleBarBackground.set_visible(show)
-			
-		if show:
-			$offset/textBackground.margin_top = 14
-		else:
-			$offset/textBackground.margin_top = 0
-		if show:
-			$offset/richTextLabel.margin_top = 17
-		else:
-			$offset/richTextLabel.margin_top = 5
-	
-
-func update_docking(dock):
-	if !is_inside_tree():
-		return
-	#if dock != "custom" and dockingStation == "custom":
-	#	mdefaultSize = rect_size
-	
-	dockingStation = dock
-	
-	var rectSize : Vector2
-	rectSize = get_viewport_rect().size
-	
-	match (dockingStation):
-		"top":
-			rect_position = Vector2(0.0, 0.0)
-			rect_size.x = rectSize.x
-			rect_size.y = mdefaultSize.y
-			showTitleBar = false
-		"bottom":
-			rect_position = Vector2(0.0, rectSize.y - mdefaultSize.y)
-			rect_size.y = mdefaultSize.y
-			rect_size.x = rectSize.x
-			showTitleBar = false
-		"left":
-			rect_position = Vector2(0.0, 0.0)
-			rect_size.x = rectSize.x * 0.5
-			rect_size.y = rectSize.y
-			showTitleBar = false
-		"right":
-			rect_position = Vector2(rectSize.x * 0.5,  0.0)
-			rect_size.x = rectSize.x * 0.5
-			rect_size.y = rectSize.y
-			showTitleBar = false
-		"full_screen":
-			rect_position = Vector2(0.0, 0.0)
-			rect_size = rectSize
-			showTitleBar = false
-		"custom":
-			rect_size = mdefaultSize
-		_:
-			return
-	update_visibility_titlebar(showTitleBar) # it is reachable
-	property_list_changed_notify()
-
-func update_button_color(color):
-	buttonColor = color
-	
-	if has_node("offset/send") and $offset/send != null:
-		var newStyle = $offset/send.theme.get("Button/styles/normal")
-		newStyle.bg_color = buttonColor
-		$offset/send.theme.set("Button/styles/normal", newStyle)
-
-
-func update_line_edit_color(color):
-	lineEditColor = color
-	
-	if has_node("offset/lineEditBackground") and $offset/lineEditBackground != null:
-		$offset/lineEditBackground.color = color
-		
-
-func update_text_color(selected):
-	if has_node("offset/richTextLabel") and $offset/richTextLabel != null and \
-			has_node("offset/lineEdit") and $offset/lineEdit != null:
-		if typeof(selected) != TYPE_STRING:
-			textColorSelector = "custom"
-
-			textColor = selected
-		else:
-			textColorSelector = selected
-			textColor = _get_color_by_name(textColorSelector)
-		
-		set_default_text_color(textColor)
-				
-				
-func update_theme(selected):
-	designSelector = selected
-
-	if _customThemes.has(selected):
-		var selectedTheme = _customThemes[selected]
-		dockingStation = selectedTheme["dockingStation"]
-		
-		roundedTitleBar = selectedTheme["roundedTitleBar"]
-		
-		titleBarColor = selectedTheme["titleBarColor"]
-		backgroundColor = selectedTheme["backgroundColor"]
-		lineEditColor = selectedTheme["lineEditColor"]
-		textColorSelector = selectedTheme["textColor"]
-		buttonColor = selectedTheme["buttonColor"]
-		textBackgroundColor = selectedTheme["textBackgroundColor"]
-		
-		showButton = selectedTheme["showButton"]
-		showLine = selectedTheme["showLine"]
-		showTitleBar = selectedTheme["showTitleBar"]
-		showTextBackground = selectedTheme["showTextBackground"]
-		update_hide_scroll_bar(selectedTheme["hideScrollBar"])
-		
-		slideInAnimation = selectedTheme["animation"]
-		
-		update_docking(dockingStation)
-		_update_theme_related_elements()
-	else:
-		print("no such theme " + str(selected))
-
-
-func update_corner(rounded : bool):
-	roundedTitleBar = rounded
-	if has_node("offset/titleBarBackground") and $offset/titleBarBackground != null:
-		var newStyle = $offset/titleBarBackground.theme.get("Panel/styles/panel")
-		 
-		if rounded:
-			newStyle.set("corner_radius_top_left", 7)
-			newStyle.set("corner_radius_top_right", 7)
-		if not rounded:
-			newStyle.set("corner_radius_top_left", 0)
-			newStyle.set("corner_radius_top_right", 0)
-		
-
-func _update_theme_related_elements():
-	update_corner(roundedTitleBar)
-	
-	
-	update_tile_bar_color(titleBarColor)
-	update_background_color(backgroundColor)
-	update_line_edit_color(lineEditColor)
-	update_button_color(buttonColor)
-	update_text_background_color(textBackgroundColor)
-	
-	
-	update_visibility_button(showButton)
-	update_visibility_line(showLine)
-	update_text_background(showTextBackground)
-	update_slide_in_animation(slideInAnimation)
-	
-	update_visibility_titlebar(showTitleBar)
-	update_text_color(textColorSelector)
-	
-	property_list_changed_notify() # to see the changes in the editor
-
-
-func update_tile_bar_color(color):
-	titleBarColor = color
-	if has_node("offset/titleBarBackground") and $offset/titleBarBackground != null:
-		var newStyle = $offset/titleBarBackground.theme.get("Panel/styles/panel")
-		#$offset/titleBarBackground.color = color
-		newStyle.bg_color = color
-
-
-func update_background_color(color):
-	backgroundColor = color
-	if has_node("offset/textBackground") and $offset/textBackground != null and \
-			has_node("offset/richTextLabel/background") and $offset/richTextLabel/background != null:
-		$offset/textBackground.color = color
-		$offset/richTextLabel/background.color = color
-		
-	if has_node("offset/buttonBackground") and $offset/buttonBackground != null:
-		$offset/buttonBackground.color = color
-
-
-func update_line_edit(text : String):
-	userMessageSign = text
-	if has_node("offset/lineEdit") and $offset/lineEdit != null:
-		$offset/lineEdit.set_placeholder(text)
-
-
-func update_visibility_button(show):
-	showButton = show
-	if has_node("offset/send") and $offset/send != null:
-		$offset/send.set_visible(show)
-	if has_node("offset/sendText") and $offset/send != null:	
-		$offset/sendText.set_visible(show)
-	if has_node("offset/buttonBackground") and $offset/send != null:
-		$offset/buttonBackground.set_visible(show)
-		
-	if has_node("offset/lineEdit") and $offset/lineEdit != null:
-		if show:
-			$offset/lineEdit.margin_right = -66
-		else:
-			$offset/lineEdit.margin_right = -5
-			
-	if has_node("offset/lineEditBackground") and $offset/lineEditBackground != null:
-		if show:
-			$offset/lineEditBackground.margin_right = -54
-		else:
-			$offset/lineEditBackground.margin_right = 0
-			
-			
-func update_visibility_line(show):
-	showLine = show
-	if has_node("offset/textBackground") and $offset/textBackground != null:
-		if show:
-			$offset/textBackground.margin_bottom = -19
-		else:
-			$offset/textBackground.margin_bottom = 0
-	
-	if has_node("offset/lineEditBackground") and $offset/lineEditBackground != null:
-		$offset/lineEditBackground.set_visible(show)
-
-
 func _ready():
 	set_process_input(true)
+	isShown = is_visible_in_tree()
 	
 	user = ConsoleUser.new(userName)
+	user.set_name(userName)
+	user.set_rights(ConsoleRights.get_rights_by_name(userRights))
+	
 	add_basic_commands()
 	basicCommandsSize = commands.size()
-	create_log_file(logFileName)
-
+	
+	if logEnabled:
+		create_log_file(logFileName)
 
 func _notification(what):
 	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
 		if logEnabled:
 			_on_logTimer_timeout()
-		
-
 
 func create_log_file(filePath):
 	if logEnabled:
 		var dir = Directory.new()
 		if not dir.file_exists(filePath):
-			print("fikle does not exists to save log file!")
+			print("log file for console doesn't exist!")
 		logFile = File.new()
 		logFile.open(filePath, logFile.WRITE_READ)
 		logFileCreated = true
@@ -575,8 +299,7 @@ func create_log_file(filePath):
 	
 	
 func add_basic_commands():
-	DefaultCommands.new(self) # adds default commands
-	
+	var d = DefaultCommands.new(self) # adds default commands
 
 func send(message : String, addToLog = true, userPrefix = false, messageSignPrefix = false, clickable = false, sendToConsole = true, flags = 0):
 	if not addNewLineAfterMsg:
@@ -789,7 +512,7 @@ func warn(message, addToLog = true):
 	if not addNewLineAfterMsg:
 		new_line()
 	_logPrefix = WARN_MSG_PREFIX
-	append_message(WARN_MSG % message, addToLog)
+	append_message_no_event(WARN_MSG % message, addToLog)
 	if addNewLineAfterMsg:
 		new_line()
 		
@@ -798,7 +521,7 @@ func error(message, addToLog = true):
 	if not addNewLineAfterMsg:
 		new_line()
 	_logPrefix = ERROR_MSG_PREFIX
-	append_message(ERROR_MSG % message, addToLog)
+	append_message_no_event(ERROR_MSG % message, addToLog)
 	if addNewLineAfterMsg:
 		new_line()
 		
@@ -807,7 +530,7 @@ func success(message, addToLog = true):
 	if not addNewLineAfterMsg:
 		new_line()
 	_logPrefix = SUCCESSFUL_MSG_PREFIX
-	append_message(SUCCESSFUL_MSG % message, addToLog)
+	append_message_no_event(SUCCESSFUL_MSG % message, addToLog)
 	if addNewLineAfterMsg:
 		new_line()
 
@@ -815,7 +538,7 @@ func success(message, addToLog = true):
 func send_message(message : String, addToLog = true, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
 	if not addNewLineAfterMsg:
 		new_line()
-	append_message(message, userPrefix, addToLog, messageSignPrefix, clickableMeta, sendToConsole, flags)
+	append_message(message, addToLog, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
 	if addNewLineAfterMsg:
 		new_line()
 
@@ -1059,6 +782,8 @@ func _on_console_resized():
 		
 
 func add_to_log(message : String):
+	if not logEnabled:
+		return
 	if not logFileCreated:
 		return	
 	var dateDict = OS.get_datetime()
@@ -1100,7 +825,7 @@ func _print_args(commandIndex : int):
 		if commands[i].get_expected_args()[0] == VARIADIC_COMMANDS:
 			append_message_no_event("variadic", false)
 		else:
-			append_message_no_event("1", false)
+			append_message_no_event(str(commands[i].get_expected_args()[0]), false)
 	else:
 		append_message_no_event("0", false)
 
@@ -1137,20 +862,285 @@ func _get_color_by_name(colorName : String) -> Color:
 			print("couldn't find color %s!" % colorName)
 			return Color.pink
 
-
-
 func _on_logTimer_timeout():
+	if not logEnabled:
+		return
 	logFile.open(logFileName, logFile.READ_WRITE)
 	logFile.seek_end()
 	logFile.store_string(allText)
 	logFile.close()
 	allText = ""
 	
+
+# export vars setget funcs
+
+func update_log_timer(time):
+	if has_node("logTimer") and $logTimer != null:
+		logInterval = time
+		$logTimer.wait_time = time
+
+
+func update_hide_scroll_bar(hide):
+	hideScrollBar = hide
+	if has_node("offset/richTextLabel") and $offset/richTextLabel != null:
+		$offset/richTextLabel.scroll_active = not hide
+	property_list_changed_notify()
+
+
+func update_user_name_color(colorName):
+	userNameColorName = colorName
+	userNameColor = _get_color_by_name(userNameColorName)
 	
+
+func update_send_message_sign(send):
+	sendMessageSign = send
+
+
+func update_send_user_name(send):
+	sendUserName = send
+
+
+func update_text_background_color(color):
+	textBackgroundColor = color 
 	
+	if has_node("offset/richTextLabel/background") and $offset/richTextLabel/background != null:
+		$offset/richTextLabel/background.color = color
+
+
+func update_text_background(show):
+	showTextBackground = show
 	
+	if has_node("offset/richTextLabel/background") and $offset/richTextLabel/background != null:
+		$offset/richTextLabel/background.set_visible(show)
 	
+
+
+func update_slide_in_animation(anim):
+	slideInAnimation = anim
 	
+
+
+func update_user_name(uName : String):
+	userName = uName
+
+
+func update_user_rights(rightsName : String):
+	userRights = rightsName
 	
+	update_user_name_color(ConsoleRights.get_rights_color(ConsoleRights.get_rights_by_name(userRights)))
+	property_list_changed_notify()
 	
+
+func update_visibility_titlebar(show):
+	showTitleBar = show
+	if has_node("offset/titleBar") and $offset/titleBar != null and \
+			has_node("offset/hideConsole") and $offset/hideConsole != null and \
+			has_node("offset/titleBarBackground") and $offset/titleBarBackground != null and \
+			has_node("offset/richTextLabel") and $offset/richTextLabel != null:
+		
+		$offset/titleBar.set_visible(show)
+		$offset/hideConsole.set_visible(show)
+		$offset/titleBarBackground.set_visible(show)
+			
+		if show:
+			$offset/textBackground.margin_top = 14
+		else:
+			$offset/textBackground.margin_top = 0
+		if show:
+			$offset/richTextLabel.margin_top = 17
+		else:
+			$offset/richTextLabel.margin_top = 5
 	
+
+func update_docking(dock):
+	if !is_inside_tree():
+		return
+	#if dock != "custom" and dockingStation == "custom":
+	#	mdefaultSize = rect_size
+	
+	dockingStation = dock
+	
+	var rectSize : Vector2
+	rectSize = get_viewport_rect().size
+	
+	if dockingStation == "top":
+		rect_position = Vector2(0.0, 0.0)
+		rect_size.x = rectSize.x
+		rect_size.y = mdefaultSize.y
+		showTitleBar = false
+	elif dockingStation == "bottom":
+		rect_position = Vector2(0.0, rectSize.y - mdefaultSize.y)
+		rect_size.y = mdefaultSize.y
+		rect_size.x = rectSize.x
+		showTitleBar = false
+	elif dockingStation == "left":
+		rect_position = Vector2(0.0, 0.0)
+		rect_size.x = rectSize.x * 0.5
+		rect_size.y = rectSize.y
+		showTitleBar = false
+	elif dockingStation == "right":
+		rect_position = Vector2(rectSize.x * 0.5,  0.0)
+		rect_size.x = rectSize.x * 0.5
+		rect_size.y = rectSize.y
+		showTitleBar = false
+	elif dockingStation == "full_screen":
+		rect_position = Vector2(0.0, 0.0)
+		rect_size = rectSize
+		showTitleBar = false
+	elif dockingStation == "custom":
+		rect_size = mdefaultSize
+	else:
+		return
+	update_visibility_titlebar(showTitleBar) # it is reachable
+	property_list_changed_notify()
+
+func update_button_color(color):
+	buttonColor = color
+	
+	if has_node("offset/send") and $offset/send != null:
+		var newStyle = $offset/send.theme.get("Button/styles/normal")
+		newStyle.bg_color = buttonColor
+		$offset/send.theme.set("Button/styles/normal", newStyle)
+
+
+func update_line_edit_color(color):
+	lineEditColor = color
+	
+	if has_node("offset/lineEditBackground") and $offset/lineEditBackground != null:
+		$offset/lineEditBackground.color = color
+		
+
+func update_text_color(selected):
+	if has_node("offset/richTextLabel") and $offset/richTextLabel != null and \
+			has_node("offset/lineEdit") and $offset/lineEdit != null:
+		if typeof(selected) != TYPE_STRING:
+			textColorSelector = "custom"
+
+			textColor = selected
+		else:
+			textColorSelector = selected
+			textColor = _get_color_by_name(textColorSelector)
+		
+		set_default_text_color(textColor)
+
+
+func update_theme(selected):
+	designSelector = selected
+
+	if _customThemes.has(selected):
+		var selectedTheme = _customThemes[selected]
+		dockingStation = selectedTheme["dockingStation"]
+		
+		roundedTitleBar = selectedTheme["roundedTitleBar"]
+		
+		titleBarColor = selectedTheme["titleBarColor"]
+		backgroundColor = selectedTheme["backgroundColor"]
+		lineEditColor = selectedTheme["lineEditColor"]
+		textColorSelector = selectedTheme["textColor"]
+		buttonColor = selectedTheme["buttonColor"]
+		textBackgroundColor = selectedTheme["textBackgroundColor"]
+		
+		showButton = selectedTheme["showButton"]
+		showLine = selectedTheme["showLine"]
+		showTitleBar = selectedTheme["showTitleBar"]
+		showTextBackground = selectedTheme["showTextBackground"]
+		update_hide_scroll_bar(selectedTheme["hideScrollBar"])
+		
+		slideInAnimation = selectedTheme["animation"]
+		
+		update_docking(dockingStation)
+		_update_theme_related_elements()
+	else:
+		print("no such theme " + str(selected))
+
+
+func update_corner(rounded : bool):
+	roundedTitleBar = rounded
+	if has_node("offset/titleBarBackground") and $offset/titleBarBackground != null:
+		var newStyle = $offset/titleBarBackground.theme.get("Panel/styles/panel")
+		 
+		if rounded:
+			newStyle.set("corner_radius_top_left", 7)
+			newStyle.set("corner_radius_top_right", 7)
+		if not rounded:
+			newStyle.set("corner_radius_top_left", 0)
+			newStyle.set("corner_radius_top_right", 0)
+		
+
+func _update_theme_related_elements():
+	update_corner(roundedTitleBar)
+	
+	update_tile_bar_color(titleBarColor)
+	update_background_color(backgroundColor)
+	update_line_edit_color(lineEditColor)
+	update_button_color(buttonColor)
+	update_text_background_color(textBackgroundColor)
+	
+	update_visibility_button(showButton)
+	update_visibility_line(showLine)
+	update_text_background(showTextBackground)
+	update_slide_in_animation(slideInAnimation)
+	
+	update_visibility_titlebar(showTitleBar)
+	update_text_color(textColorSelector)
+	
+	property_list_changed_notify() # to see the changes in the editor
+
+
+func update_tile_bar_color(color):
+	titleBarColor = color
+	if has_node("offset/titleBarBackground") and $offset/titleBarBackground != null:
+		var newStyle = $offset/titleBarBackground.theme.get("Panel/styles/panel")
+		#$offset/titleBarBackground.color = color
+		newStyle.bg_color = color
+
+
+func update_background_color(color):
+	backgroundColor = color
+	if has_node("offset/textBackground") and $offset/textBackground != null and \
+			has_node("offset/richTextLabel/background") and $offset/richTextLabel/background != null:
+		$offset/textBackground.color = color
+		$offset/richTextLabel/background.color = color
+		
+	if has_node("offset/buttonBackground") and $offset/buttonBackground != null:
+		$offset/buttonBackground.color = color
+
+
+func update_line_edit(text : String):
+	userMessageSign = text
+	if has_node("offset/lineEdit") and $offset/lineEdit != null:
+		$offset/lineEdit.set_placeholder(text)
+
+
+func update_visibility_button(show):
+	showButton = show
+	if has_node("offset/send") and $offset/send != null:
+		$offset/send.set_visible(show)
+	if has_node("offset/sendText") and $offset/send != null:	
+		$offset/sendText.set_visible(show)
+	if has_node("offset/buttonBackground") and $offset/send != null:
+		$offset/buttonBackground.set_visible(show)
+		
+	if has_node("offset/lineEdit") and $offset/lineEdit != null:
+		if show:
+			$offset/lineEdit.margin_right = -66
+		else:
+			$offset/lineEdit.margin_right = -5
+			
+	if has_node("offset/lineEditBackground") and $offset/lineEditBackground != null:
+		if show:
+			$offset/lineEditBackground.margin_right = -54
+		else:
+			$offset/lineEditBackground.margin_right = 0
+			
+			
+func update_visibility_line(show):
+	showLine = show
+	if has_node("offset/textBackground") and $offset/textBackground != null:
+		if show:
+			$offset/textBackground.margin_bottom = -19
+		else:
+			$offset/textBackground.margin_bottom = 0
+	
+	if has_node("offset/lineEditBackground") and $offset/lineEditBackground != null:
+		$offset/lineEditBackground.set_visible(show)
