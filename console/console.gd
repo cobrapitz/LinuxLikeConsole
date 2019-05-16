@@ -545,7 +545,7 @@ func append_message_no_event(message : String, \
 							addToLog = true, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
 	if message.empty():
 		return
-
+		
 	if _flags.empty(): # load flags if not passed
 		append_flags(flags)
 	
@@ -556,8 +556,7 @@ func append_message_no_event(message : String, \
 		$offset/richTextLabel.push_meta(message) # meta click, writes meta to console
 		
 	if _flags.length() > 0:
-		$offset/richTextLabel.append_bbcode(_flags) # bbcode
-	 
+		$offset/richTextLabel.bbcode_text += _flags # bbcode
 	
 	if sendToConsole:
 		if sendUserName and userPrefix:
@@ -566,7 +565,7 @@ func append_message_no_event(message : String, \
 			message = userMessageSign + " " + message
 			
 		
-		$offset/richTextLabel.append_bbcode(message) # actual message
+		$offset/richTextLabel.bbcode_text += message # actual message
 		if logEnabled and not _disableNextLog and addToLog:
 			add_to_log(message)
 		else:
@@ -576,10 +575,10 @@ func append_message_no_event(message : String, \
 		$offset/richTextLabel.pop()
 		
 	if _flags.length() > 0:
-		$offset/richTextLabel.append_bbcode(_antiFlags)
-		
-	clear_flags()
+		$offset/richTextLabel.bbcode_text += _antiFlags
 	
+	clear_flags()
+
 
 func append_message(message : String, \
 						addToLog = true, userPrefix = false, messageSignPrefix = false, clickableMeta = false, sendToConsole = true, flags = 0): 
@@ -734,7 +733,6 @@ func send_line():
 	
 
 func _on_richTextLabel_meta_clicked(meta):
-	print("clicked")
 	$offset/lineEdit.text = meta.substr(0, meta.length())
 	$offset/lineEdit.set_cursor_position($offset/lineEdit.get_text().length())
 	$offset/lineEdit.grab_focus()
@@ -948,7 +946,6 @@ func update_visibility_titlebar(show):
 			$offset/richTextLabel.margin_top = 17
 		else:
 			$offset/richTextLabel.margin_top = 5
-	
 
 func update_docking(dock):
 	if !is_inside_tree():
