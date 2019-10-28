@@ -1,6 +1,6 @@
-# LinuxLikeConsole ([v2.1.2](https://github.com/cobrapitz/LinuxLikeConsole/tree/v2.1.2))
+# LinuxLikeConsole ([v3.0](https://github.com/cobrapitz/LinuxLikeConsole/tree/v3.0))
 ### Linux Like Console written in gdscript for Godot (Game Engine)
-###### For additional features or problems just write an issue, write an email or Discord cobrapitz#2872
+###### For additional features or problems just write an issue or Discord cobrapitz#2872
 
 
 ![Console](https://github.com/cobrapitz/LinuxLikeConsole/blob/master/showcase/consoleFront.PNG)
@@ -18,55 +18,42 @@
 ***
 
 ## Features:
-* [x] auto completion / suggestion
-* [x] custom commands
-* [x] dragable console
-* [x] built in commands like
-  * [x] /man [command]
-  * [x] /help or /helpAll (shows user-defined/all commands)
-  * [x] /exit (hides console)
-  * [x] /alias [newName] [command] [args...]
-* [x] slide in animation
-* [x] predefined and runtime forwarded parameters (runtime forwarding is prioritized)
-* [x] easy BBcode support (like: [b]this is bold[/b])
-* [x] ~~(simple)~~  logging (improved in v2.1)
-* [x] custom/built in themes (arch theme, ubuntu theme, windows, light, dark, **new** text_only (in v2.0))
-* [x] user mode (commands have priviliges) (v1.1)
-* [x] Additional Logging functions (warn, error, sucess ) (v2.1)
+* [x] Auto completion / suggestion
+* [x] Custom commands
+* [x] Custom Channels (Default only 'All' Channel)
+* [x] Custom/built in themes (arch theme, ubuntu theme, windows, light, dark, text_only)
+* [x] Built in commands like
+  * [x] man, tree, ls, cd, help, alias, setDock, clear, ... 
+* [x] Predefined and runtime forwarded parameters (runtime forwarding is prioritized)
+* [x] Easy BBcode support (like: [b]this is bold[/b])
+* [x] Logging
+* [x] Dragable console
+* [x] Slide in animation
+* [x] User rights (to restrict the usage of developer only commands)
+* [x] Additional Visual and Logging functions (warn, error, sucess )
 ***
-### Coming in next version:
-- ~~Chat~~
 
-***
 ### Fully customizeable
 
 ![functions](https://github.com/cobrapitz/LinuxLikeConsole/blob/master/showcase/console10.PNG)
 
 ***
 
-### Drawbacks
-* #### parameter access of custom functions with Arrays (see example below)
-* #### window not resizeable (only with 'setDock' in runtime)
-
 
 ### How to create custom commands
 
-##### [Short Version](https://github.com/cobrapitz/LinuxLikeConsole/wiki/Examples#1-how-to-add-custom-command-1)
+##### [Full Version here](https://github.com/cobrapitz/LinuxLikeConsole/wiki/Examples#1-how-to-add-custom-command-1)
 ```gdscript
 #short version
 
-const CommandRef = preload("res://console/command_ref.gd")
-const Console = preload("res://console/console.tscn")
-
-onready var console = $console
-
+onready var console = $Console
 
 func _ready():
-    var printRef = CommandRef.new(self, "my_print", CommandRef.COMMAND_REF_TYPE.FUNC, 1)
-    var printCommand = Command.new('test_print', printRef, [], 'Custom print.', ConsoleRights.CallRights.USER)
-    console.add_command(printCommand)
+    var printThreeRef = CommandRef.new(self, "my_three_print", 3)
+    var printThreeCommand = Command.new('printThree', printThreeRef , 'Custom print.')
+    console.add_command(printThreeCommand )
 
-    
-func my_print(input : Array):
-    print("This is my first message: %s" % input[0]) 
+# 3-arguments version (called with: /printVariant print this please !!!)
+func my_three_print(arg1, arg2, arg3):
+    print("your args: %s %s %s" % [arg1, arg2, arg3]) 
 ```
