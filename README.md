@@ -53,7 +53,7 @@ func _ready():
     var printThreeCommand = Command.new('printThree', printThreeRef , 'Custom print.')
     console.add_command(printThreeCommand )
 
-# 3-arguments version (called with: /printVariant print this please !!!)
+# 3-arguments version (called with: /printVariant print this please)
 func my_three_print(arg1, arg2, arg3):
     print("your args: %s %s %s" % [arg1, arg2, arg3]) 
 ```
