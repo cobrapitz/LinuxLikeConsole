@@ -1,22 +1,69 @@
 extends CanvasLayer
 
-func write_line(msg, addToLog = true, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
-	$console.write_line(str(msg), addToLog, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
+onready var console = $Consoles/Console
 
-func send(msg, addToLog = true, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
-	write_line(msg, addToLog, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
+
+func _ready():
+	pass
+
+
+func write_channel(channelName, text, flags = 0):
+	console.write_channel(channelName, text, flags)
 	
-func append_message(msg, addToLog = true, userPrefix = false, messageSignPrefix = false,  clickableMeta = false, sendToConsole = true, flags = 0):
-	write_line(msg, addToLog, userPrefix, messageSignPrefix, clickableMeta, sendToConsole, flags)
+	
+func write_line_channel(channelName, text, flags = 0):
+	console.write_line_channel(channelName, text + "\n", flags)
 
-func error(msg, addToLog = true):
-	$console.error(msg, addToLog)
 
-func warn(msg, addToLog = true):
-	$console.warn(msg, addToLog)
+func write(msg, flags = 0):
+	console.write_channel("All", msg, flags)
 
-func success(msg, addToLog = true):
-	$console.success(msg, addToLog)
 
-func add_command(command):
-	$console.add_command(command)
+func write_line(msg, flags = 0):
+	console.write_line_channel("All", msg, flags)
+
+
+func error(msg, channelName = "All"):
+	if channelName.empty():
+		console.error(msg, 0)
+	else:
+		console.error(msg, 0, console.get_channel(channelName))
+
+
+func warn(msg, channelName = "All"):
+	if channelName.empty():
+		console.warn(msg, 0)
+	else:
+		console.warn(msg, 0, console.get_channel(channelName))
+
+
+func success(msg, channelName = "All"):
+	if channelName.empty():
+		console.success(msg, 0)
+	else:
+		console.success(msg, 0, console.get_channel(channelName))
+
+
+func add_command(command : ConsoleCommand):
+	console.add_command(command)
+
+
+func get_channels() -> Array:
+	return console.get_channels()
+
+
+func get_channel(channelName : String) -> ConsoleChannel:
+	return console.get_channel(channelName)
+
+
+func add_channel(channelName : String):
+	console.add_channel(channelName)
+
+
+func remove_channel(channelName : String):
+	console.remove_channel(channelName)
+
+
+
+
+
