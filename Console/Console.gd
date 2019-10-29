@@ -402,7 +402,7 @@ func write_line_channel(channelName : String, text : String, flags = 0):
 func write_channel(channelName : String, text : String, flags = 0):
 	var channel = get_channel(channelName)
 	if !channel:
-		add_channel(channelName)
+		var _c = add_channel(channelName)
 	write(text, flags, channel)
 
 
@@ -548,10 +548,6 @@ func get_closest_commands(command : String) -> Array:
 			results.append(com.get_invoke_name())
 				
 	return results
-
-
-func _exit_tree():
-	print("free resources")
 
 
 
