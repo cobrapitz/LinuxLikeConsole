@@ -50,7 +50,7 @@ onready var console = $Console
 
 func _ready():
     var printThreeRef = CommandRef.new(self, "my_three_print", 3)
-    var printThreeCommand = Command.new('printThree', printThreeRef , 'Custom print.')
+    var printThreeCommand = ConsoleCommand.new('printThree', printThreeRef , 'Custom print.')
     console.add_command(printThreeCommand )
 
 # 3-arguments version (called with: /printVariant print this please)
