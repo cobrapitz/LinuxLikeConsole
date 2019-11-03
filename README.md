@@ -20,7 +20,7 @@
 ## Features:
 * [x] Auto completion / suggestion
 * [x] Custom commands
-* [x] Custom Channels (Default only 'All' Channel)
+* [x] **(NEW)** Custom Channels (Default only 'All' Channel)
 * [x] Custom/built in themes (arch theme, ubuntu theme, windows, light, dark, text_only)
 * [x] Built in commands like
   * [x] man, tree, ls, cd, help, alias, setDock, clear, ... 
