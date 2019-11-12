@@ -253,10 +253,7 @@ func write_line(msg, flags = 0, channel = selectedChannel):
 	if !msg.empty():
 		write(msg, flags, channel)
 	
-	_clear_channel_cache(allChannel)
-	_clear_channel_cache(channel)
-	_write_to_selected_channel(channel, "\n")
-	_apply_selected_channel_text()
+	write("\n", 0, channel)
 
 
 func clear_selected_channel_text():
