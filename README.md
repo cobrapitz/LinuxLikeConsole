@@ -33,12 +33,6 @@
 * [x] Additional Visual and Logging functions (warn, error, sucess )
 ***
 
-### Fully customizeable
-
-![functions](https://github.com/cobrapitz/LinuxLikeConsole/blob/master/showcase/console10.PNG)
-
-***
-
 
 ### How to create custom commands
 
@@ -52,8 +46,21 @@ func _ready():
     var printThreeRef = CommandRef.new(self, "my_three_print", 3)
     var printThreeCommand = ConsoleCommand.new('printThree', printThreeRef , 'Custom print.')
     console.add_command(printThreeCommand )
+    
+    # Also possible style
+   
+    console.add_command(ConsoleCommand.new( \
+        'printThree', \                                  # command  (like /printThree arg1 arg2 arg3)
+        CommandRef.new(self, "my_three_print", 3) ,  \   # object with function name and arguments
+        'Custom print.') ) \                             # description
 
 # 3-arguments version (called with: /printVariant print this please)
 func my_three_print(arg1, arg2, arg3):
     print("your args: %s %s %s" % [arg1, arg2, arg3]) 
 ```
+
+### Fully customizable
+
+![functions](https://github.com/cobrapitz/LinuxLikeConsole/blob/master/showcase/console10.PNG)
+
+***
